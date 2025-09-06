@@ -1,5 +1,14 @@
-# OpenDoor CRM — v14 (roles visible)
-1) Залейте всё в GitHub Pages (репозиторий Opendoor).
-2) Firestore → Rules → вставьте `firestore.rules` → Publish.
-3) Откройте: `https://kuanysh0799.github.io/Opendoor/?v=14`.
-4) Первый вошедший = owner, остальные = manager.
+# OpenDoor CRM — v15
+Изменения:
+- Карточка клиента (открывается из раздела Клиенты).
+- WhatsApp по клику на телефон (везде).
+- Кнопка «Дальше →» у сделки в воронке и списке (переход на следующий этап).
+- Логотип в хедере (замени assets/logo.png на свой PNG).
+- Только тёмная тема (светлый режим отключён).
+- Экспорт отчётов в Excel (CSV).
+- Убрана вкладка «Настройки».
+
+Запуск:
+1) Залей в GitHub Pages (Opendoor).
+2) Firestore → Rules → вставь `firestore.rules` → Publish.
+3) Открой: `https://kuanysh0799.github.io/Opendoor/?v=15`.

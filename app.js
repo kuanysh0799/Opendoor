@@ -5,7 +5,8 @@ import {
   browserSessionPersistence, browserPopupRedirectResolver, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import {
-  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, query, orderBy, limit, serverTimestamp
+  getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc,
+  query, orderBy, limit, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
@@ -19,10 +20,6 @@ const db   = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 const $=(s,e=document)=>e.querySelector(s); const $$=(s,e=document)=>e.querySelectorAll(s);
-
-// Theme
-$("#themeBtn")?.addEventListener("click", ()=> document.body.classList.toggle("light"));
-$("#themeToggle")?.addEventListener("click", ()=> document.body.classList.toggle("light"));
 
 // Tabs
 $$(".pill-tabs .pill").forEach(b=>b.addEventListener("click",()=>{
@@ -39,14 +36,10 @@ const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 $("#authBtn")?.addEventListener("click", async () => {
   if (auth.currentUser) { await signOut(auth); return; }
   try {
-    if (isIOS || isSafari || isStandalone) {
-      await signInWithRedirect(auth, provider);
-    } else {
-      await signInWithPopup(auth, provider);
-    }
+    if (isIOS || isSafari || isStandalone) { await signInWithRedirect(auth, provider); }
+    else { await signInWithPopup(auth, provider); }
   } catch (e) { alert("Ошибка входа: " + e.message); }
 });
-$("#signOutBtn")?.addEventListener("click", async()=>{ if(auth.currentUser) await signOut(auth); });
 getRedirectResult(auth).catch(()=>{});
 
 // Auto-role: first user = owner, others = manager
@@ -66,42 +59,28 @@ async function ensureUserProfile(user) {
   console.log('Профиль создан. Роль:', role);
 }
 
-// Auth state + show role
+// Auth state
 onAuthStateChanged(auth, async (u) => {
   $("#authBtn").textContent = u ? (u.displayName || u.email || "Выйти") : "Войти";
   $("#fab").style.display = u ? "block" : "none";
-  if (u) {
-    await ensureUserProfile(u);
-    const snap = await getDoc(doc(db, "users", u.uid));
-    if (snap.exists()) { $("#userRole").textContent = snap.data().role || "—"; }
-    loadDeals(); renderStages();
-  } else {
-    $("#dealsList").innerHTML=''; $("#stages").innerHTML=''; $("#userRole").textContent = "—";
-  }
+  if (u) { await ensureUserProfile(u); loadAll(); }
+  else { ["dealsList","stages","clientsList"].forEach(id=>{const el=$("#"+id); if(el) el.innerHTML="";}); }
 });
 
 // Pipeline
 const STAGES = ['Лид','Контакт','Консультация','КП / Накладная','Оплата','Доставка','Установка'];
-function renderStages(){
-  const wrap = $("#stages"); if(!wrap) return; wrap.innerHTML='';
-  STAGES.forEach(s=>{
-    const el=document.createElement('div'); el.className='stage'; el.innerHTML=`<h4>${s}</h4><div class="cards"></div>`;
-    wrap.appendChild(el);
-  });
-  placeDealsOnStages();
-}
+
+async function loadAll(){ await Promise.all([loadDeals(), loadClients(), renderStages()]); }
 
 // Deals
 async function loadDeals(){
   const list = $("#dealsList"); if(!list) return; list.innerHTML='';
   try{
-    const q = query(collection(db,'deals'), orderBy('createdAt','desc'));
-    const snap = await getDocs(q);
+    const qy = query(collection(db,'deals'), orderBy('createdAt','desc'));
+    const snap = await getDocs(qy);
     const deals=[]; snap.forEach(d=>deals.push({id:d.id, ...d.data()}));
     window._deals = deals; renderDeals(deals); placeDealsOnStages();
-  }catch(e){
-    console.error(e); list.innerHTML='<div class="empty">Нет доступа или данные недоступны.</div>';
-  }
+  }catch(e){ console.error(e); list.innerHTML='<div class="empty">Нет доступа или данные недоступны.</div>'; }
 }
 function renderDeals(deals){
   const list = $("#dealsList"); if(!list) return; list.innerHTML='';
@@ -110,10 +89,31 @@ function renderDeals(deals){
     card.innerHTML = `
       <span class="badge">${d.stage||'Лид'}</span>
       <h5>${d.customer?.name||'Клиент'}</h5>
-      <div class="meta">${d.customer?.phone||''}</div>
-      <div class="meta">Сумма: ${(d.totals?.amount||0).toLocaleString('ru-RU')} ${d.totals?.currency||'KZT'}</div>`;
+      <div class="meta"><a class="wa" data-phone="${d.customer?.phone||''}" href="#">${d.customer?.phone||''}</a></div>
+      <div class="meta">Сумма: ${(d.totals?.amount||0).toLocaleString('ru-RU')} ${d.totals?.currency||'KZT'}</div>
+      <div class="actions"><button class="btn ok" data-id="${d.id}">Дальше →</button></div>`;
     list.appendChild(card);
   });
+  // bind next stage
+  list.querySelectorAll('.btn.ok').forEach(b=>b.addEventListener('click',()=>advanceStage(b.dataset.id)));
+  // bind whatsapp
+  list.querySelectorAll('a.wa').forEach(a=>a.addEventListener('click',(e)=>{e.preventDefault(); openWhatsApp(a.dataset.phone);}));
+}
+
+async function advanceStage(id){
+  const d = (window._deals||[]).find(x=>x.id===id); if(!d) return;
+  const idx = Math.min(STAGES.length-1, Math.max(0, STAGES.indexOf(d.stage||'Лид')) + 1);
+  await updateDoc(doc(db,'deals',id), { stage: STAGES[idx] });
+  await loadAll();
+}
+
+function renderStages(){
+  const wrap = $("#stages"); if(!wrap) return; wrap.innerHTML='';
+  STAGES.forEach(s=>{
+    const el=document.createElement('div'); el.className='stage'; el.innerHTML=`<h4>${s}</h4><div class="cards"></div>`;
+    wrap.appendChild(el);
+  });
+  placeDealsOnStages();
 }
 function placeDealsOnStages(){
   if(!window._deals) return;
@@ -125,10 +125,14 @@ function placeDealsOnStages(){
     if(!col) return;
     const c=document.createElement('div'); c.className='card';
     c.innerHTML=`<h5>${d.customer?.name||'Клиент'}</h5>
-                 <div class="meta">${d.customer?.phone||''}</div>
-                 <div class="meta">Сумма: ${(d.totals?.amount||0).toLocaleString('ru-RU')} ${d.totals?.currency||'KZT'}</div>`;
+                 <div class="meta"><a class="wa" data-phone="${d.customer?.phone||''}" href="#">${d.customer?.phone||''}</a></div>
+                 <div class="meta">Сумма: ${(d.totals?.amount||0).toLocaleString('ru-RU')} ${d.totals?.currency||'KZT'}</div>
+                 <div class="actions"><button class="btn ok" data-id="${d.id}">Дальше →</button></div>`;
     col.appendChild(c);
   });
+  // bind
+  wrap.querySelectorAll('.btn.ok').forEach(b=>b.addEventListener('click',()=>advanceStage(b.dataset.id)));
+  wrap.querySelectorAll('a.wa').forEach(a=>a.addEventListener('click',(e)=>{e.preventDefault(); openWhatsApp(a.dataset.phone);}));
 }
 
 // Search
@@ -143,40 +147,77 @@ $("#fab")?.addEventListener("click", ()=> $("#dealDialog").showModal());
 $("#dealSave")?.addEventListener("click", async (ev)=>{
   ev.preventDefault();
   const u = auth.currentUser; if(!u){ alert("Сначала войдите"); return; }
+  const name=$("#custName").value.trim()||"Клиент";
+  const phone=$("#custPhone").value.trim();
   const deal = {
-    customer:{name:$("#custName").value.trim()||"Клиент", phone:$("#custPhone").value.trim()},
+    customer:{name, phone},
     items:[], totals:{amount:parseInt($("#amount").value||"0"), currency:"KZT"},
-    payment:{status:"pending", method:"", approved:false},
-    delivery:{date:"", time:"", status:"scheduled"},
+    payment:{status:"pending"}, delivery:{date:"", time:"", status:"scheduled"},
     warehouse:{reserved:false,reservedBy:""},
     stage:"Лид", managerId:u.uid, createdAt: serverTimestamp()
   };
   try{
-    await addDoc(collection(db,'deals'), deal);
+    const ref = await addDoc(collection(db,'deals'), deal);
+    // upsert client
+    const cid = phone || name.toLowerCase().replace(/\s+/g,'_');
+    await setDoc(doc(db,'clients', cid), {
+      name, phone, lastDealId: ref.id, updatedAt: serverTimestamp()
+    }, { merge: true });
     $("#dealDialog").close(); $("#custName").value=""; $("#custPhone").value=""; $("#amount").value="";
-    loadDeals();
+    await loadAll();
   }catch(e){
-    console.error("save deal error:", e);
-    const offlineCodes = ['unavailable', 'failed-precondition'];
-    if (offlineCodes.includes(e.code)) {
-      const q = JSON.parse(localStorage.getItem('od_queue')||'[]');
-      q.push({type:'deal', payload:deal});
-      localStorage.setItem('od_queue', JSON.stringify(q));
-      alert("Нет сети — сделка будет отправлена при подключении");
-    } else if (e.code === 'permission-denied') {
-      alert("Нет прав на запись. Войдите через Google и проверьте правила Firestore.");
-    } else if (!auth.currentUser) {
-      alert("Сначала войдите через Google.");
-    } else {
-      alert("Ошибка сохранения: " + (e.message||e.code));
-    }
+    alert("Ошибка сохранения: " + (e.message||e.code));
     $("#dealDialog").close();
   }
 });
 
-// Retry offline queue
-window.addEventListener('online', async()=>{
-  const q = JSON.parse(localStorage.getItem('od_queue')||'[]'); if(!q.length) return;
-  const keep=[]; for(const it of q){ try{ if(it.type==='deal') await addDoc(collection(db,'deals'), it.payload); }catch{ keep.push(it); } }
-  localStorage.setItem('od_queue', JSON.stringify(keep)); loadDeals();
+// Clients
+async function loadClients(){
+  const list = $("#clientsList"); if(!list) return; list.innerHTML='';
+  try{
+    const snap = await getDocs(query(collection(db,'clients'), orderBy('updatedAt','desc')));
+    const items=[]; snap.forEach(d=>items.push({id:d.id, ...d.data()}));
+    window._clients = items;
+    items.forEach(c=>{
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML=`<h5>${c.name||'Клиент'}</h5>
+                      <div class="meta"><a class="wa" data-phone="${c.phone||''}" href="#">${c.phone||''}</a></div>
+                      <div class="actions"><button class="btn" data-id="${c.id}">Открыть карточку</button></div>`;
+      list.appendChild(card);
+    });
+    // bind
+    list.querySelectorAll('a.wa').forEach(a=>a.addEventListener('click',(e)=>{e.preventDefault(); openWhatsApp(a.dataset.phone);}));
+    list.querySelectorAll('.btn').forEach(b=>b.addEventListener('click',()=>openClient(b.dataset.id)));
+  }catch(e){ list.innerHTML='<div class="empty">Клиенты недоступны.</div>'; }
+}
+
+function openClient(id){
+  const c = (window._clients||[]).find(x=>x.id===id); if(!c) return;
+  $("#clientTitle").textContent = c.name || "Клиент";
+  const info = $("#clientInfo");
+  info.innerHTML = `
+    <div><b>Телефон:</b> <a class="wa" data-phone="${c.phone||''}" href="#">${c.phone||''}</a></div>
+    <div><b>ID:</b> ${id}</div>
+    <div><b>Последняя сделка:</b> ${c.lastDealId||'—'}</div>`;
+  $("#whatsappBtn").href = getWaLink(c.phone||"");
+  $("#clientDialog").showModal();
+  info.querySelector('a.wa')?.addEventListener('click',(e)=>{e.preventDefault(); openWhatsApp(c.phone||"");});
+}
+
+// WhatsApp open
+function getWaLink(phone){ const digits=(phone||'').replace(/\D/g,''); return digits?`https://wa.me/${digits}`:'https://wa.me/'; }
+function openWhatsApp(phone){ window.open(getWaLink(phone), '_blank'); }
+
+// Export CSV
+$("#exportCsv")?.addEventListener("click", ()=>{
+  const rows = [["id","stage","customer_name","customer_phone","amount","currency"]];
+  (window._deals||[]).forEach(d=>{
+    rows.push([d.id, d.stage||"", d.customer?.name||"", d.customer?.phone||"", d.totals?.amount||0, d.totals?.currency||"KZT"]);
+  });
+  const csv = rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "deals_export.csv";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 });

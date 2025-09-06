@@ -8,12 +8,12 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="icon" href="assets/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=14">
+  <link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
   <header class="appbar">
     <div class="brand">
-      <img class="logo" src="assets/icon-192.png" alt="OpenDoor">
+      <img class="logo" src="assets/logo.png" alt="OpenDoor">
       <div class="titles">
         <div class="appname">OpenDoor CRM</div>
         <div class="tagline">Продажи дверей • облако • PWA</div>
@@ -21,7 +21,6 @@
     </div>
     <div class="bar-actions">
       <button id="installBtn" class="ghost pill sm" hidden>Установить</button>
-      <button id="themeBtn" class="icon ghost" aria-label="Сменить тему">🌙</button>
       <button id="authBtn" class="pill">Войти</button>
     </div>
   </header>
@@ -30,14 +29,11 @@
     <button class="pill active" data-tab="pipeline">Воронка</button>
     <button class="pill" data-tab="deals">Сделки</button>
     <button class="pill" data-tab="clients">Клиенты</button>
-    <button class="pill" data-tab="tasks">Задачи</button>
     <button class="pill" data-tab="reports">Отчёты</button>
-    <button class="pill" data-tab="settings">Настройки</button>
   </nav>
 
   <main class="workspace">
     <section id="pipeline" class="pane active">
-      <div class="empty">Войдите через Google, чтобы увидеть свою воронку продаж.</div>
       <div id="stages" class="stages"></div>
     </section>
 
@@ -50,38 +46,25 @@
     </section>
 
     <section id="clients" class="pane">
-      <div class="empty">Скоро: список клиентов, быстрый звонок, история покупок.</div>
-    </section>
-
-    <section id="tasks" class="pane">
-      <div class="empty">Скоро: напоминания о доставке и установке.</div>
+      <div class="pane-head">
+        <h2>Клиенты</h2>
+        <input id="clientSearch" class="input" placeholder="Поиск по имени/телефону…" />
+      </div>
+      <div id="clientsList" class="cards"></div>
     </section>
 
     <section id="reports" class="pane">
-      <div class="empty">Скоро: выручка, маржа, эффективность менеджеров, топ‑товары.</div>
-    </section>
-
-    <section id="settings" class="pane">
-      <h2>Настройки</h2>
-      <div class="settings">
-        <label class="row">
-          <span>Тема</span>
-          <button id="themeToggle" class="pill sm">Переключить</button>
-        </label>
-        <label class="row">
-          <span>Аккаунт</span>
-          <button id="signOutBtn" class="pill sm danger">Выйти</button>
-        </label>
-        <label class="row">
-          <span>Ваша роль</span>
-          <span id="userRole" class="pill sm ghost">—</span>
-        </label>
+      <div class="pane-head">
+        <h2>Отчёты</h2>
+        <button id="exportCsv" class="pill">Экспорт в Excel (CSV)</button>
       </div>
+      <div class="empty">Нажмите «Экспорт в Excel (CSV)», чтобы скачать сделки.</div>
     </section>
   </main>
 
   <button id="fab" class="fab" title="Новая сделка">+</button>
 
+  <!-- Диалог создания сделки -->
   <dialog id="dealDialog" class="dialog">
     <form method="dialog" class="sheet">
       <h3>Новая сделка</h3>
@@ -95,8 +78,20 @@
     </form>
   </dialog>
 
-  <script type="module" src="firebase-config.js?v=14"></script>
-  <script type="module" src="app.js?v=14"></script>
+  <!-- Диалог карточки клиента -->
+  <dialog id="clientDialog" class="dialog">
+    <form method="dialog" class="sheet">
+      <h3 id="clientTitle">Клиент</h3>
+      <div id="clientInfo" class="client-info"></div>
+      <menu>
+        <a id="whatsappBtn" class="pill" target="_blank" rel="noopener">Открыть WhatsApp</a>
+        <button value="cancel" class="ghost pill">Закрыть</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script type="module" src="firebase-config.js?v=15"></script>
+  <script type="module" src="app.js?v=15"></script>
   <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
 </body>
 </html>
