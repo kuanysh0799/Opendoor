@@ -39,36 +39,38 @@
 </nav>
 
 <main class="od-page">
-  <!-- Воронка -->
   <section id="tab-funnel" class="od-view od-view--active">
-    <div class="od-kanban" id="kanban">
-      <!-- колонки заполняются из JS -->
-    </div>
+    <div class="od-kanban" id="kanban"></div>
     <button id="addDealBtn" class="od-fab">+</button>
   </section>
 
-  <!-- Сделки (список) -->
   <section id="tab-deals" class="od-view">
-    <div class="od-toolbar">
-      <input id="dealSearch" class="od-input" placeholder="Поиск сделки...">
-    </div>
+    <div class="od-toolbar"><input id="dealSearch" class="od-input" placeholder="Поиск сделки..."></div>
     <div id="dealList" class="od-list"></div>
   </section>
 
-  <!-- Клиенты -->
   <section id="tab-clients" class="od-view">
-    <div class="od-toolbar">
-      <input id="clientSearch" class="od-input" placeholder="Поиск клиента (имя/телефон)...">
-    </div>
+    <div class="od-toolbar"><input id="clientSearch" class="od-input" placeholder="Поиск клиента (имя/телефон)..."></div>
     <div id="clientList" class="od-list"></div>
   </section>
 
-  <!-- Отчёты/Настройки — заглушки -->
-  <section id="tab-reports" class="od-view"><div class="od-empty">Отчёты скоро 👷‍♂️</div></section>
-  <section id="tab-settings" class="od-view"><div class="od-empty">Настройки скоро 👷‍♂️</div></section>
+  <section id="tab-reports" class="od-view">
+    <div class="od-cards">
+      <div class="od-card"><div class="od-card-title">Сегодня — сделки</div><div id="r-today-count" class="od-kpi">0</div></div>
+      <div class="od-card"><div class="od-card-title">Сегодня — выручка</div><div id="r-today-sum" class="od-kpi">0 ₸</div></div>
+      <div class="od-card"><div class="od-card-title">Сегодня — средний чек</div><div id="r-today-avg" class="od-kpi">0 ₸</div></div>
+    </div>
+    <h3 class="od-h3">Качество источников</h3>
+    <div id="r-sources" class="od-quality"></div>
+  </section>
+
+  <section id="tab-settings" class="od-view">
+    <h3 class="od-h3">Редактирование клиентов</h3>
+    <div class="od-toolbar"><input id="settingsClientSearch" class="od-input" placeholder="Найти клиента для редактирования"></div>
+    <div id="settingsClientList" class="od-list"></div>
+  </section>
 </main>
 
-<!-- Диалог новой сделки -->
 <dialog id="dealDialog" class="od-dialog">
   <form method="dialog" class="od-form">
     <h3>Новая сделка</h3>
@@ -81,15 +83,27 @@
         <option>Рекомендации</option><option>Объявление</option><option>Визит в магазин</option>
       </select>
     </label>
-    <menu class="od-actions">
-      <button value="cancel" class="od-btn od-btn--ghost">Отмена</button>
-      <button id="dlgSave" value="default" class="od-btn od-btn--primary">Сохранить</button>
-    </menu>
+    <menu class="od-actions"><button value="cancel" class="od-btn od-btn--ghost">Отмена</button><button id="dlgSave" value="default" class="od-btn od-btn--primary">Сохранить</button></menu>
+  </form>
+</dialog>
+
+<dialog id="clientDialog" class="od-dialog">
+  <form method="dialog" class="od-form">
+    <h3>Клиент</h3>
+    <input type="hidden" id="clId">
+    <label>Имя<input id="clName" class="od-input" required></label>
+    <label>Телефон<input id="clPhone" class="od-input" inputmode="tel"></label>
+    <label>Источник
+      <select id="clSource" class="od-input">
+        <option>Instagram</option><option>WhatsApp</option><option>2ГИС</option>
+        <option>Рекомендации</option><option>Объявление</option><option>Визит в магазин</option>
+      </select>
+    </label>
+    <menu class="od-actions"><button value="cancel" class="od-btn od-btn--ghost">Отмена</button><button id="clSave" value="default" class="od-btn od-btn--primary">Сохранить</button></menu>
   </form>
 </dialog>
 
 <script>
-  // простые вкладки
   document.querySelectorAll(".od-tab").forEach(btn=>{
     btn.addEventListener("click",()=>{
       document.querySelectorAll(".od-tab").forEach(b=>b.classList.remove("od-tab--active"));
@@ -98,7 +112,6 @@
       document.getElementById("tab-"+btn.dataset.tab).classList.add("od-view--active");
     });
   });
-  // тема
   const themeBtn=document.getElementById('themeBtn');
   themeBtn?.addEventListener('click',()=>{
     const t=document.documentElement.dataset.theme==='dark'?'light':'dark';
