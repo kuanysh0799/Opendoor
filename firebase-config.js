@@ -1,4 +1,3 @@
-// ТВОЙ действующий проект Firebase
 export const firebaseConfig = {
   apiKey: "AIzaSyDFGSt9lWNg-SmTSuI4Af39XZBNjL9yTIY",
   authDomain: "opendoor-85e8d.firebaseapp.com",
