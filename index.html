@@ -1,33 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>OpenDoor CRM</title>
+  <meta name="theme-color" content="#0c1224">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
-  <header>
-    <div class="logo">🟦</div>
-    <h1>OpenDoor CRM</h1>
-    <div class="header-actions">
-      <button id="themeToggle">🌙</button>
-      <button id="loginBtn">Войти</button>
+  <header class="appbar">
+    <div class="brand">
+      <img class="logo" src="assets/icon-192.png" alt="OpenDoor">
+      <div class="titles">
+        <div class="appname">OpenDoor CRM</div>
+        <div class="tagline">Продажи дверей • облако • PWA</div>
+      </div>
+    </div>
+    <div class="bar-actions">
+      <button id="installBtn" class="ghost pill sm" hidden>Установить</button>
+      <button id="themeBtn" class="icon ghost" aria-label="Сменить тему">🌙</button>
+      <button id="authBtn" class="pill">Войти</button>
     </div>
   </header>
-  <nav>
-    <button class="tab active" data-tab="pipeline">Воронка</button>
-    <button class="tab" data-tab="deals">Сделки</button>
-    <button class="tab" data-tab="clients">Клиенты</button>
-    <button class="tab" data-tab="tasks">Задачи</button>
-    <button class="tab" data-tab="reports">Отчёты</button>
-    <button class="tab" data-tab="settings">Настройки</button>
+
+  <nav class="pill-tabs">
+    <button class="pill active" data-tab="pipeline">Воронка</button>
+    <button class="pill" data-tab="deals">Сделки</button>
+    <button class="pill" data-tab="clients">Клиенты</button>
+    <button class="pill" data-tab="tasks">Задачи</button>
+    <button class="pill" data-tab="reports">Отчёты</button>
+    <button class="pill" data-tab="settings">Настройки</button>
   </nav>
-  <main id="content">
-    <p>Выберите раздел или войдите через Google.</p>
+
+  <main class="workspace">
+    <section id="pipeline" class="pane active">
+      <div class="empty">Войдите через Google, чтобы увидеть свою воронку продаж.</div>
+      <div id="stages" class="stages"></div>
+    </section>
+
+    <section id="deals" class="pane">
+      <div class="pane-head">
+        <h2>Сделки</h2>
+        <input id="dealSearch" class="input" placeholder="Поиск по клиенту/телефону…" />
+      </div>
+      <div id="dealsList" class="cards"></div>
+    </section>
+
+    <section id="clients" class="pane">
+      <div class="empty">Скоро: список клиентов, быстрый звонок, история покупок.</div>
+    </section>
+
+    <section id="tasks" class="pane">
+      <div class="empty">Скоро: напоминания о доставке и установке.</div>
+    </section>
+
+    <section id="reports" class="pane">
+      <div class="empty">Скоро: выручка, маржа, эффективность менеджеров, топ‑товары.</div>
+    </section>
+
+    <section id="settings" class="pane">
+      <h2>Настройки</h2>
+      <div class="settings">
+        <label class="row">
+          <span>Тема</span>
+          <button id="themeToggle" class="pill sm">Переключить</button>
+        </label>
+        <label class="row">
+          <span>Аккаунт</span>
+          <button id="signOutBtn" class="pill sm danger">Выйти</button>
+        </label>
+      </div>
+    </section>
   </main>
-  <button id="fab">＋</button>
-  <script type="module" src="app.js"></script>
+
+  <button id="fab" class="fab" title="Новая сделка">+</button>
+
+  <!-- Диалог создания сделки -->
+  <dialog id="dealDialog" class="dialog">
+    <form method="dialog" class="sheet">
+      <h3>Новая сделка</h3>
+      <label>Клиент<input id="custName" class="input" placeholder="Имя клиента" required/></label>
+      <label>Телефон<input id="custPhone" class="input" placeholder="+7..." /></label>
+      <label>Сумма (KZT)<input id="amount" type="number" class="input" min="0" step="1000" placeholder="0"/></label>
+      <menu>
+        <button value="cancel" class="ghost pill">Отмена</button>
+        <button id="dealSave" value="default" class="pill">Сохранить</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script type="module" src="firebase-config.js?v=7"></script>
+  <script type="module" src="app.js?v=7"></script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
 </body>
 </html>
