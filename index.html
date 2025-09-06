@@ -4,116 +4,103 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>OpenDoor CRM</title>
-  <meta name="theme-color" content="#0b1020">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-  <link rel="icon" href="assets/icon-192.png">
-  <link rel="stylesheet" href="styles.css">
+  <!-- iOS A2HS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="OpenDoor CRM">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+
+  <meta name="theme-color" content="#0F7CFF">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <div class="appbar">
+  <header class="app-header">
     <div class="brand">
-      <img src="assets/icon-192.png" class="logo" alt="logo">
-      <div>
-        <div class="appname">OpenDoor CRM</div>
-        <div class="tagline">Продажи дверей · облако · PWA</div>
+      <img class="logo" src="./assets/icon-192.png" alt="OpenDoor">
+      <div class="t">
+        <h1>OpenDoor CRM</h1>
+        <span>Продажи дверей • PWA</span>
       </div>
     </div>
-    <div class="app-actions">
-      <button id="installBtn" class="ghost sm">Установить</button>
-      <button id="themeBtn" class="ghost sm">Тема</button>
-    </div>
-  </div>
+    <div class="grow"></div>
+    <button id="themeToggle" class="icon">🌙</button>
+    <button id="btnLogin" class="btn small ghost">Войти</button>
+    <button id="btnLogout" class="btn small ghost" style="display:none">Выйти</button>
+  </header>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="pipeline">Воронка</button>
-    <button class="tab" data-tab="deals">Сделки</button>
-    <button class="tab" data-tab="clients">Клиенты</button>
-    <button class="tab" data-tab="docs">Документы</button>
-    <button class="tab" data-tab="reports">Отчёты</button>
-    <button class="tab" data-tab="settings">Настройки</button>
-  </div>
+  <nav class="tabs">
+    <button data-screen="pipeline" class="active">Воронка</button>
+    <button data-screen="deals">Сделки</button>
+    <button data-screen="clients">Клиенты</button>
+    <button data-screen="tasks">Задачи</button>
+    <button data-screen="reports">Отчёты</button>
+    <button data-screen="settings">Настройки</button>
+    <button id="tabUsers" data-screen="users" style="display:none">Сотрудники</button>
+  </nav>
 
-  <main class="container">
-    <section id="authBox" class="card auth">
-      <div class="card-body">
-        <h3>Войдите через Google</h3>
-        <p class="muted">Единая база в Firestore для всех сотрудников.</p>
-        <button id="loginBtn" class="btn google">Войти через Google</button>
-        <div id="userInfo" class="user"></div>
+  <main id="app"></main>
+
+  <button id="fab" class="fab" title="Новая сделка">＋</button>
+
+  <!-- Bottom Sheet -->
+  <div id="sheet" class="sheet hidden" aria-hidden="true">
+    <div class="sheet-box" role="dialog" aria-modal="true">
+      <div class="sheet-head">
+        <strong id="sheetTitle">Новая сделка</strong>
+        <div class="grow"></div>
+        <button id="sheetClose" class="icon">✕</button>
       </div>
-    </section>
 
-    <section id="pipeline" class="tabpane active">
-      <div class="card">
-        <div class="card-head">
-          <h3>Воронка продаж</h3>
-          <button id="newDealBtn" class="btn primary">＋ Сделка</button>
-        </div>
-        <div class="stages">
-          <div class="stage">Лид</div>
-          <div class="stage">Контакт</div>
-          <div class="stage">Консультация</div>
-          <div class="stage">КП / Накладная</div>
-          <div class="stage">Оплата</div>
-          <div class="stage">Доставка</div>
-          <div class="stage">Установка</div>
-        </div>
-        <div class="hint muted">После входа появятся реальные данные.</div>
+      <div class="grid">
+        <label class="field">
+          <span>Клиент</span>
+          <input id="fName" class="input" placeholder="ФИО">
+        </label>
+        <label class="field">
+          <span>Телефон</span>
+          <input id="fPhone" class="input" placeholder="+7 7xx xxx xx xx" inputmode="tel">
+        </label>
+        <label class="field">
+          <span>Адрес</span>
+          <input id="fAddress" class="input" placeholder="Город, улица, дом">
+        </label>
+        <label class="field">
+          <span>Источник</span>
+          <select id="fSource" class="input">
+            <option>Instagram</option><option>2ГИС</option>
+            <option>Реклама</option><option>Рекомендация</option>
+            <option>Магазин</option><option>WhatsApp</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Дата доставки</span>
+          <input id="fDate" type="date" class="input">
+        </label>
+        <label class="field">
+          <span>Время</span>
+          <input id="fTime" type="time" class="input">
+        </label>
       </div>
-    </section>
 
-    <section id="deals" class="tabpane">
-      <div class="card">
-        <div class="card-head">
-          <h3>Сделки</h3>
-          <button id="newDealBtn2" class="btn primary">＋ Новая сделка</button>
-        </div>
-        <div id="dealsList" class="list"></div>
-      </div>
-    </section>
-
-    <section id="clients" class="tabpane">
-      <div class="card">
-        <div class="card-head"><h3>Клиенты</h3></div>
-        <div id="clientsList" class="list"></div>
-      </div>
-    </section>
-
-    <section id="docs" class="tabpane">
-      <div class="card">
-        <h3>Документы</h3>
-        <ul class="bullets muted">
-          <li>КП (PDF)</li>
-          <li>Счёт</li>
-          <li>Акт, Договор, Накладная</li>
-        </ul>
-      </div>
-    </section>
-
-    <section id="reports" class="tabpane">
-      <div class="card">
-        <h3>Отчёты</h3>
-        <p class="muted">Эффективность менеджеров, выручка, маржа, ТОП товары.</p>
-      </div>
-    </section>
-
-    <section id="settings" class="tabpane">
-      <div class="card">
-        <h3>Настройки</h3>
+      <section class="items">
         <div class="row">
-          <button id="logoutBtn" class="btn danger">Выйти</button>
+          <h4>Позиции</h4>
+          <div class="grow"></div>
+          <button id="addItem" class="btn small">+ Позиция</button>
         </div>
+        <div id="items"></div>
+      </section>
+
+      <div class="totals" id="totals"></div>
+
+      <div class="actions">
+        <button id="saveDeal" class="btn primary">Сохранить</button>
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
 
-  <button id="fab" class="fab">＋</button>
-
-  <script type="module" src="firebase-config.js"></script>
-  <script type="module" src="app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js'); }
-  </script>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>

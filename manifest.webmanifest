@@ -1,10 +1,10 @@
 {
   "name": "OpenDoor CRM",
   "short_name": "OpenDoor",
-  "start_url": "./",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#0b1020",
-  "theme_color": "#0b1020",
+  "background_color": "#0b0e12",
+  "theme_color": "#0F7CFF",
   "icons": [
     {
       "src": "assets/icon-192.png",
