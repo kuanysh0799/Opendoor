@@ -2,77 +2,110 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>OpenDoor CRM</title>
-  <meta name="theme-color" content="#0f172a"/>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="icon" href="icon-192.png">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon-192.png" type="image/png">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <header class="appbar">
-    <div class="brand">
-      <img src="icon-192.png" alt="logo" class="logo">
-      <div>
-        <h1>OpenDoor CRM</h1>
-        <div class="subtitle">Продажи дверей • PWA</div>
-      </div>
+<header class="od-appbar">
+  <div class="od-left">
+    <img src="./apple-touch-icon.png" alt="OpenDoor" class="od-logo">
+    <div class="od-title">
+      <div class="name">OpenDoor CRM</div>
+      <div class="sub">Продажи дверей · PWA</div>
     </div>
-    <div class="actions">
-      <button id="installBtn" class="ghost small">Установить</button>
-      <div id="userChip" class="chip hidden"></div>
-      <button id="loginBtn" class="primary">Войти</button>
-      <button id="logoutBtn" class="ghost hidden">Выйти</button>
+  </div>
+
+  <div class="od-right">
+    <button id="themeBtn" class="od-icon" aria-label="Тема">🌓</button>
+    <div id="userChip" class="od-user hidden">
+      <span id="userName">—</span>
+      <button id="logoutBtn" class="od-btn od-btn--ghost">Выйти</button>
     </div>
-  </header>
+    <button id="loginBtn" class="od-btn od-btn--primary">Войти через Google</button>
+  </div>
+</header>
 
-  <nav class="tabs">
-    <button class="tab active" data-tab="pipeline">Воронка</button>
-    <button class="tab" data-tab="deals">Сделки</button>
-    <button class="tab" data-tab="clients">Клиенты</button>
-    <button class="tab" data-tab="reports">Отчёты</button>
-    <button class="tab" data-tab="settings">Настройки</button>
-  </nav>
+<nav class="od-tabs">
+  <button class="od-tab od-tab--active" data-tab="funnel">Воронка</button>
+  <button class="od-tab" data-tab="deals">Сделки</button>
+  <button class="od-tab" data-tab="clients">Клиенты</button>
+  <button class="od-tab" data-tab="reports">Отчёты</button>
+  <button class="od-tab" data-tab="settings">Настройки</button>
+</nav>
 
-  <main>
-    <section id="pipeline" class="page active">
-      <div class="section-title">
-        <h2>Воронка продаж</h2>
-        <button id="addDealFab" class="fab">+</button>
-      </div>
-      <div id="pipelineBoard" class="kanban">
-        <!-- колонки формируются скриптом -->
-      </div>
-    </section>
+<main class="od-page">
+  <!-- Воронка -->
+  <section id="tab-funnel" class="od-view od-view--active">
+    <div class="od-kanban" id="kanban">
+      <!-- колонки заполняются из JS -->
+    </div>
+    <button id="addDealBtn" class="od-fab">+</button>
+  </section>
 
-    <section id="deals" class="page">
-      <div class="toolbar">
-        <button id="newDealBtn" class="primary">+ Сделка</button>
-      </div>
-      <ul id="dealsList" class="list"></ul>
-    </section>
+  <!-- Сделки (список) -->
+  <section id="tab-deals" class="od-view">
+    <div class="od-toolbar">
+      <input id="dealSearch" class="od-input" placeholder="Поиск сделки...">
+    </div>
+    <div id="dealList" class="od-list"></div>
+  </section>
 
-    <section id="clients" class="page">
-      <div class="toolbar">
-        <input id="clientSearch" class="input" placeholder="Поиск клиента: имя или телефон">
-        <button id="newClientBtn" class="primary">+ Клиент</button>
-      </div>
-      <ul id="clientsList" class="list"></ul>
-    </section>
+  <!-- Клиенты -->
+  <section id="tab-clients" class="od-view">
+    <div class="od-toolbar">
+      <input id="clientSearch" class="od-input" placeholder="Поиск клиента (имя/телефон)...">
+    </div>
+    <div id="clientList" class="od-list"></div>
+  </section>
 
-    <section id="reports" class="page">
-      <h2>Отчёты</h2>
-      <div id="kpi" class="kpi"></div>
-    </section>
+  <!-- Отчёты/Настройки — заглушки -->
+  <section id="tab-reports" class="od-view"><div class="od-empty">Отчёты скоро 👷‍♂️</div></section>
+  <section id="tab-settings" class="od-view"><div class="od-empty">Настройки скоро 👷‍♂️</div></section>
+</main>
 
-    <section id="settings" class="page">
-      <h2>Настройки</h2>
-      <p>Приложение офлайн-готово. Для iPhone: поделиться → На экран «Домой».</p>
-      <pre class="note">Если вход не срабатывает в браузере внутри мессенджера — откройте страницу в Safari/Chrome.</pre>
-    </section>
-  </main>
+<!-- Диалог новой сделки -->
+<dialog id="dealDialog" class="od-dialog">
+  <form method="dialog" class="od-form">
+    <h3>Новая сделка</h3>
+    <label>Клиент<input id="dlgClient" class="od-input" required></label>
+    <label>Телефон<input id="dlgPhone" class="od-input" inputmode="tel"></label>
+    <label>Бюджет (₸)<input id="dlgBudget" class="od-input" inputmode="numeric"></label>
+    <label>Источник
+      <select id="dlgSource" class="od-input">
+        <option>Instagram</option><option>WhatsApp</option><option>2ГИС</option>
+        <option>Рекомендации</option><option>Объявление</option><option>Визит в магазин</option>
+      </select>
+    </label>
+    <menu class="od-actions">
+      <button value="cancel" class="od-btn od-btn--ghost">Отмена</button>
+      <button id="dlgSave" value="default" class="od-btn od-btn--primary">Сохранить</button>
+    </menu>
+  </form>
+</dialog>
 
-  <script type="module" src="app.js"></script>
+<script>
+  // простые вкладки
+  document.querySelectorAll(".od-tab").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(".od-tab").forEach(b=>b.classList.remove("od-tab--active"));
+      document.querySelectorAll(".od-view").forEach(v=>v.classList.remove("od-view--active"));
+      btn.classList.add("od-tab--active");
+      document.getElementById("tab-"+btn.dataset.tab).classList.add("od-view--active");
+    });
+  });
+  // тема
+  const themeBtn=document.getElementById('themeBtn');
+  themeBtn?.addEventListener('click',()=>{
+    const t=document.documentElement.dataset.theme==='dark'?'light':'dark';
+    document.documentElement.dataset.theme=t; localStorage.setItem('od_theme',t);
+  });
+  document.documentElement.dataset.theme=localStorage.getItem('od_theme')||'dark';
+</script>
+<script type="module" src="./app.js"></script>
 </body>
 </html>

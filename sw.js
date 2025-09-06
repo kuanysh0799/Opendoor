@@ -1,22 +1,8 @@
-self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-  // Не трогаем трафик Google Auth и возврат после редиректа
-  if (url.origin.includes("accounts.google.com") || url.pathname.includes("/__/auth/handler")) {
-    return; // не respondWith — пусть браузер сам обработает
-  }
-});
-// sw.js
-const CACHE = 'od-crm-v1';
+// sw.js — PWA cache, с исключением Google OAuth
+const CACHE = 'od-amo-v2';
 const ASSETS = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './firebase-config.js',
-  './manifest.webmanifest',
-  './icon-192.png',
-  './icon-512.png',
-  './apple-touch-icon.png'
+  './','./index.html','./styles.css','./app.js','./firebase-config.js',
+  './manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e=>{
@@ -25,17 +11,17 @@ self.addEventListener('install', e=>{
 });
 
 self.addEventListener('activate', e=>{
-  e.waitUntil(caches.keys().then(keys=>Promise.all(keys.map(k=>k!==CACHE&&caches.delete(k)))));
+  e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
   self.clients.claim();
 });
 
 self.addEventListener('fetch', e=>{
-  const req = e.request;
-  e.respondWith(
-    caches.match(req).then(cached=> cached || fetch(req).then(res=>{
-      const copy = res.clone();
-      caches.open(CACHE).then(c=>c.put(req, copy));
-      return res;
-    }).catch(()=> cached))
-  );
+  const url = new URL(e.request.url);
+  // не перехватываем Google Sign-In и /__/auth/handler
+  if (url.origin.includes('accounts.google.com') || url.pathname.includes('/__/auth/handler')) return;
+  if (e.request.mode === 'navigate') {
+    e.respondWith(fetch(e.request).catch(()=>caches.match('./index.html')));
+    return;
+  }
+  e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
 });
