@@ -1,85 +1,139 @@
+/* ===== Базовые цвета ===== */
 :root{
-  --bg:#0d1117; --panel:#111826; --muted:#9aa4b2; --text:#e6edf3;
-  --brand1:#2b5c7a; --brand2:#7a5c9e; --primary:#2f81f7; --danger:#f85149;
-  --chip:#1f2937; --border:#1f2430; --ok:#2ea043;
+  --bg:#0b0f17;           /* общий фон */
+  --panel:#0f172a;        /* блоки/карточки */
+  --text:#e9eef6;         /* основной текст */
+  --muted:#98a3b3;        /* вспомогательный текст */
+  --border:#1c2434;       /* рамки */
+  --brand1:#162a46;       /* градиент шапки слева */
+  --brand2:#3a2f78;       /* градиент шапки справа */
+  --primary:#2f7af9;      /* основной акцент (кнопки) */
+  --danger:#f34d4d;       /* опасные действия */
+  --chip:#111a2b;         /* чипы/таб-pill */
 }
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0; font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial;
-  color:var(--text); background:var(--bg);
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font:16px/1.45 -apple-system,BlinkMacSystemFont,Inter,Segoe UI,Roboto,Arial;
 }
 
-/* header */
+/* ===== Шапка (градиент + логотип + кнопки) ===== */
 .appbar{
-  position:sticky; top:0; z-index:10; padding:12px 16px;
-  background:linear-gradient(135deg,var(--brand1),var(--brand2));
+  position:sticky; top:0; z-index:10;
   display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px;
+  background:linear-gradient(120deg,var(--brand1),var(--brand2));
+  border-bottom:1px solid rgba(255,255,255,.06);
 }
-.brand{display:flex; gap:12px; align-items:center}
-.logo{width:28px;height:28px;border-radius:6px;background:#fff}
-h1{margin:0;font-size:20px;font-weight:700}
+.brand{display:flex; align-items:center; gap:12px}
+.logo{width:30px;height:30px;border-radius:8px;background:#fff}
+h1{margin:0;font-size:20px;font-weight:800;letter-spacing:.2px}
 .subtitle{font-size:12px;opacity:.8}
-.actions{display:flex; gap:8px; align-items:center}
-.icon-btn{background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:10px;color:#fff;padding:6px 10px}
-.user-badge{padding:6px 10px;background:rgba(255,255,255,.15);border-radius:10px}
+
+.actions{display:flex; gap:10px; align-items:center}
+.icon-btn{
+  border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.08);
+  color:#fff; padding:8px 10px; border-radius:12px;
+}
+.user-badge{padding:8px 12px;background:rgba(255,255,255,.14);border-radius:12px}
 .hidden{display:none}
 
-/* tabs */
-.tabs{display:flex; gap:12px; padding:12px 16px; background:#0b1220; border-bottom:1px solid var(--border)}
-.tab{background:#0f172a;color:#cbd5e1;border:1px solid var(--border);border-radius:12px;padding:10px 14px}
-.tab.active{outline:2px solid var(--primary); color:#fff}
+/* ===== Таб-навигация — «пилюли» 3×2 на мобиле ===== */
+.tabs{
+  display:flex; flex-wrap:wrap; gap:12px;
+  padding:12px 16px;
+  background:#0b1220;
+  border-bottom:1px solid var(--border);
+}
+.tab{
+  background:var(--chip);
+  border:1px solid var(--border);
+  color:#c9d5e4;
+  padding:10px 14px;
+  border-radius:14px;          /* закруглённые как раньше */
+  font-weight:600;
+}
+.tab.active{
+  color:#fff;
+  outline:2px solid var(--primary);
+  outline-offset:0;
+}
 
-/* layout */
+/* ===== Контент ===== */
 .container{padding:16px}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
 
-/* lists/cards */
-.list{display:flex; flex-direction:column; gap:10px}
+.hint{margin:10px 2px;color:var(--muted)}
+
+/* ===== Инпуты и кнопки ===== */
+.input{
+  width:100%; padding:10px 12px;
+  background:#0e1627; color:var(--text);
+  border:1px solid var(--border); border-radius:12px;
+}
+.toolbar{display:flex; gap:10px; margin-bottom:12px}
+
+.btn{border:0;border-radius:14px;padding:10px 14px;font-weight:700}
+.btn.primary{background:var(--primary);color:#fff}
+.btn.outline{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff}
+.btn.danger{background:var(--danger);color:#fff}
+
+/* ===== Карточки/списки ===== */
+.list{display:flex; flex-direction:column; gap:12px}
 .card{
-  background:var(--panel); border:1px solid var(--border); border-radius:14px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
   padding:12px 14px;
 }
-.card-title{font-weight:600;margin-bottom:6px}
-.stat{font-size:24px;font-weight:700}
-.hint{margin:12px 2px;color:var(--muted)}
-.chip{display:inline-block;background:var(--chip);border:1px solid var(--border);padding:6px 10px;border-radius:999px}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
+.card-title{font-weight:700;margin-bottom:6px}
+.stat{font-size:22px;font-weight:800}
+.chip{
+  display:inline-block;background:var(--chip);
+  border:1px solid var(--border); color:#cfe3ff;
+  padding:6px 10px;border-radius:999px
+}
 
-/* inputs */
-.input{width:100%;background:#0f172a;border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text)}
-.toolbar{display:flex; gap:10px; margin-bottom:12px}
-.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:600}
-.btn.primary{background:var(--primary);color:#fff}
-.btn.outline{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff}
-.btn.danger{background:var(--danger);color:#fff}
-.btn.ghost{background:transparent;color:#fff}
+/* ===== Воронка ===== */
+.funnel{display:grid; gap:14px; grid-template-columns:1fr}
+@media (min-width:900px){ .funnel{grid-template-columns:repeat(3,1fr)} }
 
-/* dialog */
-.dialog{border:none;border-radius:16px;padding:0;background:#0000}
+.stage{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px; padding:12px;
+}
+.stage h4{margin:6px 4px 10px 4px; font-size:15px}
+.stage .kpi{display:flex; gap:8px; flex-wrap:wrap; margin:6px 2px}
+.deal{
+  background:#0f172a; border:1px solid var(--border); border-radius:14px;
+  padding:10px; margin:8px 0;
+}
+.deal .row{display:flex; justify-content:space-between; gap:10px}
+.deal .meta{color:var(--muted); font-size:12px; margin-top:6px}
+
+/* ===== Диалог ===== */
+.dialog{border:none;border-radius:16px;padding:0;background:transparent}
 .dialog::backdrop{background:rgba(0,0,0,.6)}
-.dialog-body{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; width:min(680px,92vw)}
+.dialog-body{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:18px; padding:16px; width:min(680px,92vw)
+}
 .dialog-menu{display:flex; justify-content:flex-end; gap:10px; margin-top:14px}
 .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
 .grid .full{grid-column:1/-1}
 
-/* funnel */
-.funnel{display:grid; gap:12px; grid-template-columns:repeat(1,1fr)}
-@media (min-width:900px){.funnel{grid-template-columns:repeat(3,1fr)}}
-.stage{
-  background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:10px;
-}
-.stage h4{margin:6px 4px 10px 4px}
-.stage .kpi{display:flex; gap:8px; flex-wrap:wrap; margin:6px 2px}
-.kpi .chip{background:#0f172a}
-.deal{background:#0f172a;border:1px solid var(--border);border-radius:12px;padding:10px;margin:6px 0}
-.deal .row{display:flex;justify-content:space-between;gap:8px}
-.deal .meta{color:var(--muted);font-size:12px;margin-top:6px}
-
-/* fab */
+/* ===== FAB (синий круг внизу) ===== */
 .fab{
-  position:fixed; right:18px; bottom:22px; width:62px; height:62px; border-radius:50%;
-  background:var(--primary); color:#fff; border:none; font-size:26px; font-weight:700;
-  box-shadow:0 10px 26px rgba(47,129,247,.35);
+  position:fixed; right:18px; bottom:22px;
+  width:64px; height:64px; border-radius:50%;
+  background:var(--primary); color:#fff; border:none;
+  font-size:28px; font-weight:800;
+  box-shadow:0 12px 28px rgba(47,122,249,.38);
 }
