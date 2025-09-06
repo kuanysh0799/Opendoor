@@ -3,8 +3,8 @@
   "short_name": "OpenDoor",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#0b0e12",
-  "theme_color": "#0F7CFF",
+  "background_color": "#111",
+  "theme_color": "#2563eb",
   "icons": [
     {
       "src": "assets/icon-192.png",

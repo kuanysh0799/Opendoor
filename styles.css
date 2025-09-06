@@ -1,53 +1,8 @@
-:root{
-  --bg:#0b1020; --bg2:#0f1422; --text:#eef3f8; --muted:#9fb0c2;
-  --glass:rgba(255,255,255,.06); --border:rgba(255,255,255,.12);
-  --primary:#5b8cff; --accent:#35d5c9; --danger:#ef4444;
-}
-*{box-sizing:border-box} html,body{height:100%}
-body{
-  margin:0; color:var(--text);
-  background:
-    radial-gradient(900px 600px at 90% -20%, #0ea5e955, transparent),
-    radial-gradient(1000px 600px at 10% -10%, #14213d55, transparent),
-    linear-gradient(135deg, var(--bg), var(--bg2) 40%, var(--bg));
-  font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial;
-}
-
-/* App bar */
-.appbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:linear-gradient(180deg,rgba(10,15,25,.85),rgba(10,15,25,.55));backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
-.brand{display:flex;align-items:center;gap:10px}
-.logo{width:36px;height:36px;border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.35)}
-.appname{font-weight:800;letter-spacing:.3px}
-.tagline{font-size:12px;color:var(--muted)}
-.actions{display:flex;gap:8px}
-
-/* Tabs */
-.tabs{display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);position:sticky;top:58px;background:linear-gradient(180deg,rgba(10,15,25,.75),rgba(10,15,25,.35));backdrop-filter:blur(8px);z-index:9}
-.tab{border:1px solid var(--border);background:var(--glass);color:var(--text);padding:8px 12px;border-radius:12px;font-weight:700}
-.tab.active{background:linear-gradient(180deg,#1f2736,#1a2232);border-color:#2b3c57}
-
-/* Layout */
-.container{max-width:1060px;margin:18px auto;padding:0 12px}
-.card{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35);margin-bottom:16px}
-.card .card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 0}
-.card h3{margin:0 0 10px;padding:0 16px}
-.card .card-body{padding:16px}
-.muted{color:var(--muted)} .hint{padding:0 16px 16px}
-
-.stages{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));gap:10px;padding:0 16px 16px}
-.stage{text-align:center;padding:10px;border:1px dashed #375173;border-radius:12px;color:#cbd6e5;background:linear-gradient(180deg,rgba(9,14,24,.6),rgba(9,14,24,.3))}
-.list .item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border)}
-
-.btn{border:none;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
-.btn.primary{background:linear-gradient(180deg,#6ea0ff,#5b8cff);color:#fff;box-shadow:0 12px 30px rgba(91,140,255,.25)}
-.btn.google{background:#fff;color:#111;border:1px solid #e5e7eb}
-.btn.danger{background:var(--danger);color:#fff}
-.ghost{background:var(--glass);color:#d3dfef;border:1px solid var(--border)}
-.sm{padding:6px 10px;font-size:12px}
-
-.tabpane{display:none} .tabpane.active{display:block}
-
-.fab{position:fixed;right:18px;bottom:18px;z-index:20;width:56px;height:56px;border-radius:18px;border:none;color:#fff;font-size:26px;font-weight:800;background:linear-gradient(180deg,#35d5c9,#1fb7ab);box-shadow:0 20px 40px rgba(31,183,171,.35)}
-
-/* Светлая тема */
-body.light{--bg:#f8fafc;--bg2:#fff;--text:#0f172a;--muted:#5b6778;--border:#e5e7eb;--glass:rgba(0,0,0,.04);background:linear-gradient(180deg,#f2f5f9,#f9fbff)}
+body {margin:0;font-family:sans-serif;background:#111;color:#eee;}
+header {display:flex;align-items:center;justify-content:space-between;padding:10px;background:linear-gradient(90deg,#0a0f2c,#1e3c72);color:#fff;}
+.logo {font-size:24px;}
+nav {display:flex;flex-wrap:wrap;justify-content:center;padding:10px;gap:8px;background:#1c1c1c;}
+nav .tab {padding:10px 16px;border:none;border-radius:12px;background:#2a2a2a;color:#eee;cursor:pointer;}
+nav .tab.active {background:#2563eb;}
+main {padding:20px;text-align:center;}
+#fab {position:fixed;right:20px;bottom:20px;width:56px;height:56px;border:none;border-radius:50%;background:#2563eb;color:#fff;font-size:24px;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer;}

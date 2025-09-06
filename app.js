@@ -1,69 +1,60 @@
-// Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-// Твой конфиг (оставь файл firebase-config.js как есть)
-import { firebaseConfig } from "./firebase-config.js";
+import { firebaseConfig } from './firebase-config.js';
 
-// Init
+// Init Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db   = getFirestore(app);
+const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-// Helpers
-const $  = (s, e=document)=> e.querySelector(s);
-const $$ = (s, e=document)=> e.querySelectorAll(s);
+// Login
+const loginBtn = document.getElementById("loginBtn");
+loginBtn.addEventListener("click", async () => {
+  if (auth.currentUser) {
+    await signOut(auth);
+    loginBtn.textContent = "Войти";
+    document.getElementById("content").innerHTML = "<p>Вы вышли.</p>";
+  } else {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      loginBtn.textContent = "Выйти";
+      document.getElementById("content").innerHTML = `<p>Добро пожаловать, ${result.user.displayName}</p>`;
+    } catch (e) {
+      console.error("Ошибка входа:", e);
+    }
+  }
+});
+
+// FAB create deal
+document.getElementById("fab").addEventListener("click", async () => {
+  if (!auth.currentUser) {
+    alert("Сначала войдите через Google.");
+    return;
+  }
+  try {
+    await addDoc(collection(db, "deals"), {
+      name: "Новая сделка",
+      created: new Date(),
+      user: auth.currentUser.uid
+    });
+    alert("Сделка создана!");
+  } catch (e) {
+    console.error("Ошибка при создании сделки:", e);
+  }
+});
 
 // Tabs
-$$('.tab').forEach(b=> b.addEventListener('click', ()=>{
-  $$('.tab').forEach(x=>x.classList.toggle('active', x===b));
-  const t = b.dataset.tab;
-  $$('.tabpane').forEach(p=> p.classList.toggle('active', p.id===t));
-}));
-
-// Theme
-$('#themeBtn').addEventListener('click', ()=> document.body.classList.toggle('light'));
-
-// PWA install
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); deferredPrompt=e; $('#installBtn').style.display='inline-block'; });
-$('#installBtn').addEventListener('click', async ()=>{ if(!deferredPrompt) return; deferredPrompt.prompt(); deferredPrompt=null; });
-
-// Auth
-$('#loginBtn').addEventListener('click', async ()=>{
-  try{
-    const res = await signInWithPopup(auth, provider);
-    const u = res.user;
-    $('#userInfo').innerHTML = `Добро пожаловать, <b>${u.displayName||u.email}</b>`;
-    $('#authBox').style.display='none';
-  }catch(e){ alert('Ошибка входа: '+e.message); }
-});
-$('#logoutBtn')?.addEventListener('click', ()=> signOut(auth));
-onAuthStateChanged(auth, u=>{
-  if(u){ $('#authBox').style.display='none'; $('#userInfo').textContent = `Добро пожаловать, ${u.displayName||u.email}`; }
-  else { $('#authBox').style.display='block'; }
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("content").innerHTML = `<h2>${tab.textContent}</h2><p>Содержимое вкладки появится позже.</p>`;
+  });
 });
 
-// Создать сделку (валидно с твоими Firestore Rules)
-const createDeal = async ()=>{
-  const u = auth.currentUser;
-  if(!u){ alert('Сначала войдите'); return; }
-  try{
-    await addDoc(collection(db,'deals'), {
-      customer:{name:'Клиент', phone:''},
-      items:[], totals:{amount:0,currency:'KZT'},
-      payment:{status:'pending', method:'', approved:false},
-      delivery:{date:'', time:'', status:'scheduled'},
-      warehouse:{reserved:false,reservedBy:''},
-      stage:'Лид', managerId:u.uid, createdAt:new Date().toISOString()
-    });
-    alert('Сделка создана');
-  }catch(e){ alert('Не удалось создать сделку: '+e.message); }
-};
-$('#newDealBtn').addEventListener('click', createDeal);
-$('#newDealBtn2').addEventListener('click', createDeal);
-$('#fab').addEventListener('click', createDeal);
-
-// Рег SW (на всякий)
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+// Theme toggle
+document.getElementById("themeToggle").addEventListener("click", () => {
+  document.body.classList.toggle("light");
+});

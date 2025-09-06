@@ -1,106 +1,33 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenDoor CRM</title>
-  <!-- iOS A2HS -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="OpenDoor CRM">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-
-  <meta name="theme-color" content="#0F7CFF">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="./assets/icon-192.png">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="app-header">
-    <div class="brand">
-      <img class="logo" src="./assets/icon-192.png" alt="OpenDoor">
-      <div class="t">
-        <h1>OpenDoor CRM</h1>
-        <span>Продажи дверей • PWA</span>
-      </div>
+  <header>
+    <div class="logo">🟦</div>
+    <h1>OpenDoor CRM</h1>
+    <div class="header-actions">
+      <button id="themeToggle">🌙</button>
+      <button id="loginBtn">Войти</button>
     </div>
-    <div class="grow"></div>
-    <button id="themeToggle" class="icon">🌙</button>
-    <button id="btnLogin" class="btn small ghost">Войти</button>
-    <button id="btnLogout" class="btn small ghost" style="display:none">Выйти</button>
   </header>
-
-  <nav class="tabs">
-    <button data-screen="pipeline" class="active">Воронка</button>
-    <button data-screen="deals">Сделки</button>
-    <button data-screen="clients">Клиенты</button>
-    <button data-screen="tasks">Задачи</button>
-    <button data-screen="reports">Отчёты</button>
-    <button data-screen="settings">Настройки</button>
-    <button id="tabUsers" data-screen="users" style="display:none">Сотрудники</button>
+  <nav>
+    <button class="tab active" data-tab="pipeline">Воронка</button>
+    <button class="tab" data-tab="deals">Сделки</button>
+    <button class="tab" data-tab="clients">Клиенты</button>
+    <button class="tab" data-tab="tasks">Задачи</button>
+    <button class="tab" data-tab="reports">Отчёты</button>
+    <button class="tab" data-tab="settings">Настройки</button>
   </nav>
-
-  <main id="app"></main>
-
-  <button id="fab" class="fab" title="Новая сделка">＋</button>
-
-  <!-- Bottom Sheet -->
-  <div id="sheet" class="sheet hidden" aria-hidden="true">
-    <div class="sheet-box" role="dialog" aria-modal="true">
-      <div class="sheet-head">
-        <strong id="sheetTitle">Новая сделка</strong>
-        <div class="grow"></div>
-        <button id="sheetClose" class="icon">✕</button>
-      </div>
-
-      <div class="grid">
-        <label class="field">
-          <span>Клиент</span>
-          <input id="fName" class="input" placeholder="ФИО">
-        </label>
-        <label class="field">
-          <span>Телефон</span>
-          <input id="fPhone" class="input" placeholder="+7 7xx xxx xx xx" inputmode="tel">
-        </label>
-        <label class="field">
-          <span>Адрес</span>
-          <input id="fAddress" class="input" placeholder="Город, улица, дом">
-        </label>
-        <label class="field">
-          <span>Источник</span>
-          <select id="fSource" class="input">
-            <option>Instagram</option><option>2ГИС</option>
-            <option>Реклама</option><option>Рекомендация</option>
-            <option>Магазин</option><option>WhatsApp</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Дата доставки</span>
-          <input id="fDate" type="date" class="input">
-        </label>
-        <label class="field">
-          <span>Время</span>
-          <input id="fTime" type="time" class="input">
-        </label>
-      </div>
-
-      <section class="items">
-        <div class="row">
-          <h4>Позиции</h4>
-          <div class="grow"></div>
-          <button id="addItem" class="btn small">+ Позиция</button>
-        </div>
-        <div id="items"></div>
-      </section>
-
-      <div class="totals" id="totals"></div>
-
-      <div class="actions">
-        <button id="saveDeal" class="btn primary">Сохранить</button>
-      </div>
-    </div>
-  </div>
-
-  <script type="module" src="./app.js"></script>
+  <main id="content">
+    <p>Выберите раздел или войдите через Google.</p>
+  </main>
+  <button id="fab">＋</button>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
