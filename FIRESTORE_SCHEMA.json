@@ -1,0 +1,33 @@
+{
+  "collections": {
+    "users": {
+      "uid": "string",
+      "name": "string",
+      "email": "string",
+      "role": "owner|manager",
+      "createdAt": "timestamp"
+    },
+    "clients": {
+      "name": "string",
+      "phone": "string",
+      "address": "string",
+      "source": "string",
+      "notes": "string",
+      "isVip": "bool",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "deals": {
+      "name": "string",
+      "phone": "string",
+      "source": "string",
+      "stage": "lead|consult|kp|pay|delivery|install",
+      "total": "number",
+      "margin": "number",
+      "archived": "bool",
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp",
+      "createdBy": "uid"
+    }
+  }
+}

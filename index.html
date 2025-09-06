@@ -3,204 +3,142 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>OpenDoor CRM · Продажи дверей · PWA</title>
+  <title>OpenDoor CRM</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#0b1220">
   <link rel="stylesheet" href="styles.css">
-  <script>
-    // iOS: disable double-tap zoom
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function (event) {
-      var now = (new Date()).getTime();
-      if (now - lastTouchEnd <= 300) { event.preventDefault(); }
-      lastTouchEnd = now;
-    }, false);
-  </script>
 </head>
 <body>
-  <header class="topbar">
+  <header class="app-header">
     <div class="brand">
-      <img src="logo.png" alt="OpenDoor" class="logo">
-      <div class="brand-txt">
-        <div class="title">OpenDoor CRM</div>
-        <div class="sub">Продажи дверей · PWA</div>
+      <img src="logo.png" class="brand__logo" alt="OpenDoor">
+      <div class="brand__text">
+        <div class="brand__title">OpenDoor CRM</div>
+        <div class="brand__subtitle">Продажи дверей · PWA</div>
       </div>
     </div>
-
-    <div class="top-actions">
+    <div class="hdr-actions">
       <button id="installBtn" class="btn ghost">Установить</button>
-      <div id="userBox" class="userbox hidden">
-        <img id="userPhoto" class="avatar" alt="">
-        <span id="userName" class="uname"></span>
-        <button id="logoutBtn" class="btn danger">Выйти</button>
-      </div>
-      <button id="loginBtn" class="btn primary">Войти через Google</button>
+      <div id="userBox" class="userbox"></div>
     </div>
   </header>
 
   <nav class="tabs">
-    <button class="tab active" data-tab="pipeline">Воронка</button>
+    <button class="tab is-active" data-tab="funnel">Воронка</button>
     <button class="tab" data-tab="deals">Сделки</button>
     <button class="tab" data-tab="clients">Клиенты</button>
     <button class="tab" data-tab="reports">Отчёты</button>
     <button class="tab" data-tab="settings">Настройки</button>
   </nav>
 
-  <!-- Counters row -->
-  <section class="counters">
-    <span class="pill" id="cnt-lead">Лид: 0</span>
-    <span class="pill" id="cnt-consult">Консультация: 0</span>
-    <span class="pill" id="cnt-kp">КП/накладная: 0</span>
-    <span class="pill" id="cnt-pay">Оплата: 0</span>
-    <span class="pill" id="cnt-delivery">Доставка: 0</span>
-    <span class="pill" id="cnt-install">Установка: 0</span>
-    <label class="chk">
-      <input type="checkbox" id="showArchive"> показать архив
-    </label>
+  <section class="kpi">
+    <span class="pill" id="kpi-lead">Лид: 0</span>
+    <span class="pill" id="kpi-delivery">Доставка: 0</span>
+    <span class="pill" id="kpi-install">Установка: 0</span>
+    <label class="chk"><input type="checkbox" id="showArchive"> показать архив</label>
   </section>
 
-  <!-- Pipeline -->
-  <main id="pipeline" class="tab-body active">
-    <div class="pipeline-grid" id="pipeGrid">
-      <!-- columns render by JS -->
-    </div>
-    <button class="fab" id="addDealFab">＋</button>
-  </main>
+  <main class="content">
+    <!-- Funnel -->
+    <section id="tab-funnel" class="pane is-active">
+      <div class="row">
+        <input id="dealSearch" class="input" placeholder="Поиск сделки…">
+      </div>
+      <div id="funnel" class="funnel"></div>
+      <button id="fab" class="fab" title="Новая сделка">＋</button>
+    </section>
 
-  <!-- Deals list -->
-  <main id="deals" class="tab-body">
-    <div class="toolbar">
-      <input id="searchDeals" class="search" placeholder="Поиск сделки...">
-    </div>
-    <div id="dealsList" class="list"></div>
-  </main>
+    <!-- Deals list -->
+    <section id="tab-deals" class="pane">
+      <div class="row">
+        <input id="dealSearchList" class="input" placeholder="Поиск сделки…">
+      </div>
+      <div id="dealsList" class="list"></div>
+    </section>
 
-  <!-- Clients -->
-  <main id="clients" class="tab-body">
-    <div class="toolbar">
-      <input id="searchClients" class="search" placeholder="Поиск клиента...">
-    </div>
-    <div id="clientsList" class="list"></div>
-  </main>
+    <!-- Clients -->
+    <section id="tab-clients" class="pane">
+      <div class="row">
+        <input id="clientSearch" class="input" placeholder="Поиск клиента…">
+        <button id="newClientBtn" class="btn">+ Клиент</button>
+      </div>
+      <div id="clientsList" class="list"></div>
+    </section>
 
-  <!-- Reports -->
-  <main id="reports" class="tab-body">
-    <div class="toolbar wrap">
-      <button class="btn chip" data-range="1d">Сегодня</button>
-      <button class="btn chip" data-range="7d">Неделя</button>
-      <button class="btn chip" data-range="30d">Месяц</button>
-      <button class="btn chip" data-range="90d">3 мес</button>
-      <button class="btn chip" data-range="180d">6 мес</button>
-    </div>
-    <section class="cards">
-      <div class="card">
-        <div class="card-title">Сделок</div>
-        <div id="repDeals" class="big">0</div>
+    <!-- Reports -->
+    <section id="tab-reports" class="pane">
+      <div class="filters">
+        <button class="chip is-active" data-range="day">Сегодня</button>
+        <button class="chip" data-range="week">Неделя</button>
+        <button class="chip" data-range="month">Месяц</button>
+        <button class="chip" data-range="3m">3 мес</button>
+        <button class="chip" data-range="6m">6 мес</button>
       </div>
-      <div class="card">
-        <div class="card-title">Выручка</div>
-        <div id="repRevenue" class="big">0 ₸</div>
+      <div id="reports" class="cards"></div>
+      <div class="row end">
+        <button id="archiveDoneBtn" class="btn danger small">Архивировать завершённые</button>
       </div>
-      <div class="card">
-        <div class="card-title">По этапам</div>
-        <div id="repStages" class="mini"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Топ-клиенты</div>
-        <ol id="repTop" class="mini"></ol>
-      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="tab-settings" class="pane">
+      <h3>Настройки</h3>
+      <p class="muted">Удалять клиентов/сделки может только владелец (owner). Роль берётся из Firestore: <code>users/{uid}.role</code>.</p>
     </section>
   </main>
 
-  <!-- Settings -->
-  <main id="settings" class="tab-body">
-    <h3>Настройки</h3>
-    <p>Данные клиента можно редактировать в карточке клиента.</p>
-    <p id="roleInfo"></p>
-  </main>
+  <!-- Client modal -->
+  <dialog id="clientDialog" class="modal">
+    <form method="dialog" id="clientForm" class="modal__body">
+      <h3 id="clientDialogTitle">Клиент</h3>
+      <div class="grid">
+        <label>Имя <input name="name" class="input" required></label>
+        <label>Телефон <input name="phone" class="input" placeholder="+7707…"></label>
+        <label>Источник <input name="source" class="input" placeholder="Instagram / WhatsApp / 2ГИС"></label>
+        <label>Адрес <input name="address" class="input"></label>
+        <label>Заметки <textarea name="notes" class="input" rows="3"></textarea></label>
+      </div>
+      <div class="row end">
+        <button id="clientRepeatBtn" class="btn ghost small" type="button">Повторная покупка</button>
+        <button class="btn ghost" value="cancel">Отмена</button>
+        <button id="clientSaveBtn" class="btn primary" value="default">Сохранить</button>
+        <button id="clientDeleteBtn" class="btn danger" type="button">Удалить</button>
+      </div>
+    </form>
+  </dialog>
 
-  <!-- Modals -->
-  <dialog id="dealModal" class="modal">
-    <form method="dialog" id="dealForm">
-      <h3 id="dealModalTitle">Новая сделка</h3>
-      <div class="grid-2">
-        <label>Клиент <input name="client" required></label>
-        <label>Телефон <input name="phone" placeholder="+7…" required></label>
-      </div>
-      <div class="grid-2">
-        <label>Сумма (₸) <input type="number" name="amount" min="0" step="1000"></label>
-        <label>Источник
-          <select name="source">
-            <option>Instagram</option>
-            <option>WhatsApp</option>
-            <option>Звонок</option>
-            <option>2ГИС</option>
-            <option>Рекомендации</option>
-            <option>Визит в магазин</option>
-          </select>
-        </label>
-      </div>
-      <div class="grid-2">
+  <!-- Deal modal -->
+  <dialog id="dealDialog" class="modal">
+    <form method="dialog" id="dealForm" class="modal__body">
+      <h3 id="dealDialogTitle">Новая сделка</h3>
+      <div class="grid">
+        <label>Клиент <input name="name" class="input" required></label>
+        <label>Телефон <input name="phone" class="input" placeholder="+7707…"></label>
+        <label>Сумма (₸) <input name="total" class="input" type="number" min="0" step="1"></label>
+        <label>Маржа (₸) <input name="margin" class="input" type="number" min="0" step="1"></label>
+        <label>Источник <input name="source" class="input" placeholder="Instagram / 2ГИС / WhatsApp"></label>
         <label>Этап
-          <select name="stage">
+          <select name="stage" class="input">
             <option value="lead">Лид</option>
             <option value="consult">Консультация</option>
-            <option value="kp">КП/накладная</option>
+            <option value="kp">КП/Накладная</option>
             <option value="pay">Оплата</option>
             <option value="delivery">Доставка</option>
             <option value="install">Установка</option>
           </select>
         </label>
-        <label>Примечание <input name="note" placeholder="коротко"></label>
+        <label>Заметки <textarea name="notes" class="input" rows="3"></textarea></label>
       </div>
-      <menu>
+      <div class="row end">
         <button class="btn ghost" value="cancel">Отмена</button>
-        <button class="btn primary" value="default">Сохранить</button>
-      </menu>
+        <button id="dealSaveBtn" class="btn primary" value="default">Сохранить</button>
+      </div>
     </form>
   </dialog>
 
-  <dialog id="clientModal" class="modal">
-    <form method="dialog" id="clientForm">
-      <h3>Клиент</h3>
-      <div class="grid-2">
-        <label>Имя <input name="name" required></label>
-        <label>Телефон <input name="phone" required></label>
-      </div>
-      <div class="grid-2">
-        <label>Адрес <input name="address"></label>
-        <label>Источник
-          <select name="source">
-            <option>Instagram</option>
-            <option>WhatsApp</option>
-            <option>Звонок</option>
-            <option>2ГИС</option>
-            <option>Рекомендации</option>
-            <option>Визит в магазин</option>
-          </select>
-        </label>
-      </div>
-      <label>Заметки <textarea name="notes" rows="3"></textarea></label>
-      <menu>
-        <button class="btn danger" id="clientDeleteBtn" type="button">Удалить</button>
-        <span class="spacer"></span>
-        <button class="btn ghost" value="cancel">Отмена</button>
-        <button class="btn primary" value="default">Сохранить</button>
-      </menu>
-      <div class="right">
-        <button class="btn" id="repeatBuyBtn" type="button">Повторная покупка</button>
-      </div>
-    </form>
-  </dialog>
+  <div id="toast" class="toast"></div>
 
   <script type="module" src="app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(()=>{});
-      });
-    }
-  </script>
 </body>
 </html>

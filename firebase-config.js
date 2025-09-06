@@ -1,5 +1,4 @@
-// firebase-config.js
-// ВСТАВЬ СВОЙ КОНФИГ из Firebase Console → Project settings → Web app
+// ВСТАВЬТЕ свой конфиг из Firebase Console → Project settings → Web app → Config
 export const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
