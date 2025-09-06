@@ -2,7 +2,7 @@
 <html lang="ru" data-ready="0">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"/>
   <title>OpenDoor CRM</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
@@ -172,15 +172,24 @@
       document.querySelectorAll(".od-view").forEach(v=>v.classList.remove("od-view--active"));
       btn.classList.add("od-tab--active");
       document.getElementById("tab-"+btn.dataset.tab).classList.add("od-view--active");
-    });
+    }, {passive:true});
   });
   // Тема
   const themeBtn=document.getElementById('themeBtn');
   themeBtn?.addEventListener('click',()=>{
     const t=document.documentElement.dataset.theme==='dark'?'light':'dark';
     document.documentElement.dataset.theme=t; localStorage.setItem('od_theme',t);
-  });
+  }, {passive:true});
   document.documentElement.dataset.theme=localStorage.getItem('od_theme')||'dark';
+
+  // Убираем двойной тап-зуум
+  let lastTouch=0;
+  document.addEventListener('touchend', (e)=>{
+    const now = Date.now();
+    if(now - lastTouch <= 300){ e.preventDefault(); }
+    lastTouch = now;
+  }, {passive:false});
+  document.addEventListener('gesturestart', (e)=>e.preventDefault());
 </script>
 <script type="module" src="./app.js"></script>
 </body>

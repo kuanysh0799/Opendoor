@@ -1,4 +1,4 @@
-// app.js — fix4: save client handler, settings edit, boot gate to stop logout/login flicker
+// app.js — fix5: double-tap zoom removed, WA chat fix, client save confirmed, remove 'install', reports use 'delivery' as win
 import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -29,19 +29,33 @@ const $  = (s, e=document) => e.querySelector(s);
 const $$ = (s, e=document) => [...e.querySelectorAll(s)];
 const money = n => new Intl.NumberFormat('ru-RU',{style:'currency',currency:'KZT',maximumFractionDigits:0}).format(n||0);
 
-// Normalize phone for WhatsApp (KZ default)
-function normalizePhoneForWA(p){
+function toast(msg){
+  let t = document.createElement('div');
+  t.style.cssText='position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:10px;border:1px solid #374151;z-index:9999';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.remove(); }, 1800);
+}
+
+// Normalize phone for WhatsApp (KZ default) — prefer wa.me always
+function normalizeForWA(p){
   let n = (p||'').replace(/[^\d]/g,'');
   if(!n) return '';
+  // strip leading 00
   if(n.startsWith('00')) n = n.slice(2);
-  if(n.startsWith('8') && n.length===11) n = '7' + n.slice(1);
-  if(n.length===10) n = '7' + n;
-  if(n.startsWith('77') && n.length===12) n = n.slice(1);
-  if(n.startsWith('7') && n.length===11) return n;
-  return n.length>=11 ? n : '';
+  // +7KZ cases
+  if(n.startsWith('8') && n.length===11) n = '7' + n.slice(1);        // 8XXXXXXXXXX -> 7XXXXXXXXXX
+  if(n.length===10 && /^7\d{9}$/.test('7'+n.slice(0))) n = '7'+n;    // 10 digits -> add 7
+  if(n.length===9 && /^7\d{8}$/.test('7'+n)) n = '7'+n;              // allow 9 local digits (rare)
+  if(n.startsWith('77') && n.length===12) n = n.slice(1);             // 77... (extra leading 7)
+  // Now if starts with 7 and total 11 digits — good
+  if(/^7\d{10}$/.test(n)) return n;
+  // Fallback: if we have at least 9 digits — still try wa.me
+  if(n.length>=9) return n;
+  return '';
 }
 function waHref(phone, client){
-  const norm = normalizePhoneForWA(phone);
+  const norm = normalizeForWA(phone);
   const text = encodeURIComponent(`Здравствуйте, ${client||''}`.trim());
   return norm ? `https://wa.me/${norm}?text=${text}` : `tel:${phone||''}`;
 }
@@ -79,9 +93,9 @@ const STAGES = [
   {id:"consult",     name:"Консультация"},
   {id:"kp",          name:"КП / Накладная"},
   {id:"pay",         name:"Оплата"},
-  {id:"delivery",    name:"Доставка"},
-  {id:"install",     name:"Установка"},
+  {id:"delivery",    name:"Доставка"}
 ];
+const DONE_STAGE = 'delivery';
 
 // построить колонки (+ Свернуть/Развернуть)
 const kanbanEl = $("#kanban");
@@ -124,17 +138,16 @@ loginBtn?.addEventListener("click", async ()=>{
     if(e.code==="auth/popup-blocked") await signInWithRedirect(auth, provider);
     else alert("Ошибка входа: "+(e.message||e));
   }
-});
-logoutBtn?.addEventListener("click", ()=>signOut(auth));
+}, {passive:true});
+logoutBtn?.addEventListener("click", ()=>signOut(auth), {passive:true});
 getRedirectResult(auth).catch(()=>{});
 
-// состояние + boot-gate to avoid flicker
+// состояние + boot-gate
 let currentUser=null;
 let booted=false;
 onAuthStateChanged(auth, async (user)=>{
   currentUser=user;
   if(!booted){
-    // показать панель только после первого значения состояния
     document.documentElement.setAttribute('data-ready','1');
     authBox?.removeAttribute('hidden');
     booted=true;
@@ -165,7 +178,7 @@ function startRealtime(){
   unsub.deals = onSnapshot(q, snap=>{
     _deals = snap.docs.map(d=>({id:d.id, ...d.data()}));
     redrawDeals(_deals);
-    renderReports(); // uses selected period
+    renderReports();
   });
 }
 function stopRealtime(){ if(unsub.deals){unsub.deals();unsub.deals=null;} }
@@ -197,7 +210,6 @@ function enableDnD(){
     card.addEventListener("dragstart", e=>{
       e.dataTransfer.setData("text/plain", card.dataset.id);
     });
-    // delete or docs
     card.addEventListener("click", (e)=>{
       const del = e.target.closest('[data-del]');
       if(del){ deleteLead(del.dataset.del); e.stopPropagation(); return; }
@@ -231,7 +243,6 @@ function redrawDeals(deals){
       const cnt= colList.closest(".od-col").querySelector(".count");
       if(cnt) cnt.textContent = (+cnt.textContent+1).toString();
     }
-    // список строкой (с документами и удалением)
     const row = document.createElement('div');
     row.className = 'row';
     const extra = [];
@@ -254,12 +265,12 @@ function redrawDeals(deals){
 }
 
 // ---- Новая сделка + upsert клиента
-addDealBtn?.addEventListener("click", ()=>dealDialog.showModal());
+addDealBtn?.addEventListener("click", ()=>dealDialog.showModal(), {passive:true});
 dlgCancel?.addEventListener('click', (e)=>{ e.preventDefault(); dealDialog.close(); });
 dealDialog?.addEventListener('close', ()=> dealForm?.reset() );
 
 async function upsertClient({name, phone, source}){
-  const norm = normalizePhoneForWA(phone);
+  const norm = normalizeForWA(phone);
   try{
     const q = query(collection(db,'clients'), where('phoneNorm','==', norm), limit(1));
     const s = await getDocs(q);
@@ -404,7 +415,7 @@ clSaveBtn?.addEventListener('click', async (e)=>{
     await updateDoc(doc(db,'clients',id), {
       name: $("#clName").value.trim(),
       phone: $("#clPhone").value.trim(),
-      phoneNorm: normalizePhoneForWA($("#clPhone").value),
+      phoneNorm: normalizeForWA($("#clPhone").value),
       email: $("#clEmail").value.trim(),
       city: $("#clCity").value.trim(),
       address: $("#clAddress").value.trim(),
@@ -413,8 +424,13 @@ clSaveBtn?.addEventListener('click', async (e)=>{
       updatedAt: serverTimestamp()
     });
     $("#clientDialog").close();
+    toast('Сохранено');
   }catch(err){
-    alert('Не удалось сохранить: '+(err.message||err));
+    if(err && err.code==='permission-denied'){
+      alert('Нет прав на изменение клиента. Проверь правила Firestore (update для /clients).');
+    }else{
+      alert('Не удалось сохранить: '+(err.message||err));
+    }
   }
 });
 
@@ -515,7 +531,7 @@ function inPeriod(ts){
 }
 function renderReports(){
   const deals = _deals;
-  const done = deals.filter(d=> d.stage==='install' && inPeriod(d.updatedAt));
+  const done = deals.filter(d=> d.stage===DONE_STAGE && inPeriod(d.updatedAt));
   const cnt = done.length;
   const sum = done.reduce((a,b)=>a+(Number(b.budget)||0),0);
   $("#r-count").textContent = String(cnt);
@@ -527,7 +543,7 @@ function renderReports(){
     const s = d.source||'—';
     bySrc[s] = bySrc[s] || {total:0, won:0};
     bySrc[s].total++;
-    if(d.stage==='install') bySrc[s].won++;
+    if(d.stage===DONE_STAGE) bySrc[s].won++;
   });
   const wrap = $("#r-sources");
   wrap.innerHTML = "";
