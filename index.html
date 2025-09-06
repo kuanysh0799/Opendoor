@@ -78,7 +78,7 @@
 
 <!-- Диалог новой сделки -->
 <dialog id="dealDialog" class="od-dialog">
-  <form method="dialog" class="od-form">
+  <form id="dealForm" method="dialog" class="od-form">
     <h3>Новая сделка</h3>
     <label>Клиент<input id="dlgClient" class="od-input" required></label>
     <label>Телефон<input id="dlgPhone" class="od-input" inputmode="tel" placeholder="+7 700 000 00 00"></label>
@@ -90,13 +90,13 @@
       </select>
     </label>
     <menu class="od-actions">
-      <button value="cancel" class="od-btn od-btn--ghost">Отмена</button>
-      <button id="dlgSave" value="default" class="od-btn od-btn--primary">Сохранить</button>
+      <button id="dlgCancel" value="cancel" class="od-btn od-btn--ghost">Отмена</button>
+      <button id="dlgSave"   value="default" class="od-btn od-btn--primary">Сохранить</button>
     </menu>
   </form>
 </dialog>
 
-<!-- Диалог редактирования клиента (расширенный) -->
+<!-- Диалог редактирования клиента -->
 <dialog id="clientDialog" class="od-dialog">
   <form method="dialog" class="od-form">
     <h3>Клиент</h3>
@@ -120,8 +120,23 @@
   </form>
 </dialog>
 
+<!-- Диалог карточки клиента (просмотр) -->
+<dialog id="clientView" class="od-dialog">
+  <div class="od-form">
+    <h3 id="cvName">Клиент</h3>
+    <p id="cvMeta" class="cv-meta"></p>
+    <menu class="od-actions">
+      <a id="cvWA" target="_blank" class="od-btn od-btn--primary">WhatsApp</a>
+      <a id="cvCall" class="od-btn">Позвонить</a>
+      <button id="cvEdit" class="od-btn">Изменить</button>
+      <button id="cvDelete" class="od-btn od-btn--ghost">Удалить</button>
+      <button id="cvClose" class="od-btn od-btn--ghost">Закрыть</button>
+    </menu>
+  </div>
+</dialog>
+
 <script>
-  // вкладки
+  // Вкладки
   document.querySelectorAll(".od-tab").forEach(btn=>{
     btn.addEventListener("click",()=>{
       document.querySelectorAll(".od-tab").forEach(b=>b.classList.remove("od-tab--active"));
@@ -130,7 +145,7 @@
       document.getElementById("tab-"+btn.dataset.tab).classList.add("od-view--active");
     });
   });
-  // тема
+  // Тема
   const themeBtn=document.getElementById('themeBtn');
   themeBtn?.addEventListener('click',()=>{
     const t=document.documentElement.dataset.theme==='dark'?'light':'dark';

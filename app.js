@@ -1,4 +1,4 @@
-// app.js — WA нормализация, свёртка колонок, расширенные клиенты и upsert
+// app.js — удаление лидов/клиентов, отмена добавления, карточка клиента (view)
 import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -7,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, enableIndexedDbPersistence, addDoc, collection, serverTimestamp,
-  query, orderBy, onSnapshot, updateDoc, doc, where, getDocs, limit
+  query, orderBy, onSnapshot, updateDoc, doc, where, getDocs, limit, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // ---- Firebase init
@@ -29,11 +29,11 @@ const money = n => new Intl.NumberFormat('ru-RU',{style:'currency',currency:'KZT
 function normalizePhoneForWA(p){
   let n = (p||'').replace(/[^\d]/g,'');
   if(!n) return '';
-  if(n.startsWith('00')) n = n.slice(2);        // 007700...
-  if(n.startsWith('8') && n.length===11) n = '7' + n.slice(1); // 8XXXXXXXXXX -> 7XXXXXXXXXX
-  if(n.length===10) n = '7' + n;               // 700... -> 7700...
+  if(n.startsWith('00')) n = n.slice(2);
+  if(n.startsWith('8') && n.length===11) n = '7' + n.slice(1);
+  if(n.length===10) n = '7' + n;
+  if(n.startsWith('77') && n.length===12) n = n.slice(1);
   if(n.startsWith('7') && n.length===11) return n;
-  if(n.startsWith('77') && n.length===12) return n.slice(1); // rare double 7
   return n.length>=11 ? n : '';
 }
 function waHref(phone, client){
@@ -49,7 +49,18 @@ const userChip  = $("#userChip");
 const userName  = $("#userName");
 const addDealBtn= $("#addDealBtn");
 const dealDialog= $("#dealDialog");
+const dealForm  = $("#dealForm");
 const dlgSave   = $("#dlgSave");
+const dlgCancel = $("#dlgCancel");
+
+// Cancel add deal explicitly
+dlgCancel?.addEventListener('click', (e)=>{
+  e.preventDefault();
+  dealDialog.close();
+});
+dealDialog?.addEventListener('close', ()=>{
+  dealForm?.reset();
+});
 
 const STAGES = [
   {id:"lead",        name:"Лид"},
@@ -143,6 +154,7 @@ function renderCard(d){
   el.className="od-card"; el.draggable=true; el.dataset.id=d.id;
   const phone = d.phone||'';
   el.innerHTML = `
+    <button class="del" title="Удалить" data-del="${d.id}">✕</button>
     <div class="title">${d.client||"Без имени"}</div>
     <div class="meta">
       <a href="${waHref(phone,d.client)}" target="_blank" rel="noopener">📱 ${phone||''}</a>
@@ -153,10 +165,20 @@ function renderCard(d){
   return el;
 }
 
+async function deleteLead(id){
+  if(!confirm("Удалить эту сделку?")) return;
+  try{ await deleteDoc(doc(db,'leads',id)); }catch(e){ alert('Не удалось удалить: '+(e.message||e)); }
+}
+
 function enableDnD(){
   $$(".od-card").forEach(card=>{
     card.addEventListener("dragstart", e=>{
       e.dataTransfer.setData("text/plain", card.dataset.id);
+    });
+    // delete button
+    card.addEventListener("click", (e)=>{
+      const del = e.target.closest('[data-del]');
+      if(del){ deleteLead(del.dataset.del); e.stopPropagation(); }
     });
   });
   $$(".list").forEach(list=>{
@@ -185,7 +207,7 @@ function redrawDeals(deals){
       const cnt= colList.closest(".od-col").querySelector(".count");
       if(cnt) cnt.textContent = (+cnt.textContent+1).toString();
     }
-    // список строкой
+    // список строкой (с удалением)
     const row = document.createElement('div');
     row.className = 'row';
     const extra = [];
@@ -194,9 +216,16 @@ function redrawDeals(deals){
     if(d.email) extra.push(d.email);
     row.innerHTML = `<div><b>${d.client||'Без имени'}</b> · <span class="badge">${d.stage}</span> · <a href="${waHref(d.phone,d.client)}" target="_blank" rel="noopener">${d.phone||''}</a>
                      ${extra.length?`<small>${extra.join(' · ')}</small>`:''}</div>
-                     <div>${d.budget? money(d.budget):''}</div>`;
+                     <div class="row-actions">
+                       <button class="od-edit" data-del-lead="${d.id}">Удалить</button>
+                     </div>`;
     dealList.appendChild(row);
   });
+  // делегируем удаление в списке
+  dealList.addEventListener('click', (e)=>{
+    const btn = e.target.closest('[data-del-lead]');
+    if(btn){ deleteLead(btn.dataset.delLead); }
+  }, { once: true });
   enableDnD();
 }
 
@@ -208,17 +237,13 @@ async function upsertClient({name, phone, source}){
     const q = query(collection(db,'clients'), where('phoneNorm','==', norm), limit(1));
     const s = await getDocs(q);
     if(!s.empty){
-      // обновим имя/источник если изменились
       const id = s.docs[0].id;
-      await updateDoc(doc(db,'clients',id), {
-        name, phone, phoneNorm: norm, source,
-        updatedAt: serverTimestamp()
-      });
+      await updateDoc(doc(db,'clients',id), { name, phone, phoneNorm:norm, source, updatedAt: serverTimestamp() });
       return id;
     }else{
       const ref = await addDoc(collection(db,'clients'), {
-        name, phone, phoneNorm: norm, source,
-        email: '', city: '', address: '', note: '',
+        name, phone, phoneNorm:norm, source,
+        email:'', city:'', address:'', note:'',
         createdAt: serverTimestamp(), updatedAt: serverTimestamp()
       });
       return ref.id;
@@ -247,17 +272,24 @@ dlgSave?.addEventListener("click", async (e)=>{
   }
 });
 
-// ---- Клиенты (список + настройки редактировать)
+// ---- Клиенты (список + настройки редактировать + просмотр и удаление)
 let _clients = [];
 const settingsClientList = $("#settingsClientList");
-function renderClientsList(targetEl, list){
+const clientList = $("#clientList");
+function renderClientsList(targetEl, list, withOpen=false){
   targetEl.innerHTML="";
   list.forEach(c=>{
     const row = document.createElement('div');
     row.className='row';
     const line2 = [c.city, c.address, c.email].filter(Boolean).join(' · ');
-    row.innerHTML = `<div><b>${c.name||'—'}</b> · <a href="${waHref(c.phone,c.name)}" target="_blank" rel="noopener">${c.phone||''}</a> · <span class="badge">${c.source||''}</span>${line2?`<small>${line2}</small>`:''}</div>
-                     <button class="od-edit" data-edit="${c.id}">Изменить</button>`;
+    row.innerHTML = `<div ${withOpen?`data-open="${c.id}" style="cursor:pointer"`:""}>
+                       <b>${c.name||'—'}</b> · <a href="${waHref(c.phone,c.name)}" target="_blank" rel="noopener">${c.phone||''}</a> · <span class="badge">${c.source||''}</span>
+                       ${line2?`<small>${line2}</small>`:''}
+                     </div>
+                     <div class="row-actions">
+                       ${withOpen?'<button class="od-edit" data-open="'+c.id+'">Открыть</button>':''}
+                       <button class="od-edit danger" data-del-client="${c.id}">Удалить</button>
+                     </div>`;
     targetEl.appendChild(row);
   });
 }
@@ -265,29 +297,54 @@ function subscribeClients(){
   const q = query(collection(db,'clients'), orderBy('createdAt','desc'));
   onSnapshot(q, snap=>{
     _clients = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderClientsList($("#clientList"), _clients);
-    renderClientsList(settingsClientList, _clients);
+    renderClientsList(clientList, _clients, true);
+    renderClientsList(settingsClientList, _clients, false);
   });
 }
-$("#clientSearch").addEventListener('input', e=>{
-  const q=(e.target.value||'').toLowerCase();
-  const filtered = _clients.filter(c=>(c.name||'').toLowerCase().includes(q) || (c.phone||'').toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q) || (c.city||'').toLowerCase().includes(q));
-  renderClientsList($("#clientList"), filtered);
-});
-$("#settingsClientSearch").addEventListener('input', e=>{
-  const q=(e.target.value||'').toLowerCase();
-  const filtered = _clients.filter(c=>(c.name||'').toLowerCase().includes(q) || (c.phone||'').toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q) || (c.city||'').toLowerCase().includes(q));
-  renderClientsList(settingsClientList, filtered);
-});
+function filterClients(qs){
+  const q=qs.toLowerCase();
+  return _clients.filter(c=>(c.name||'').toLowerCase().includes(q) || (c.phone||'').toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q) || (c.city||'').toLowerCase().includes(q));
+}
+$("#clientSearch").addEventListener('input', e=>{ renderClientsList(clientList, filterClients(e.target.value), true); });
+$("#settingsClientSearch").addEventListener('input', e=>{ renderClientsList(settingsClientList, filterClients(e.target.value), false); });
 
-// Edit client dialog
-const clDialog = $("#clientDialog");
-settingsClientList.addEventListener('click', (e)=>{
-  const btn = e.target.closest('[data-edit]');
-  if(!btn) return;
-  const id = btn.dataset.edit;
-  const c = _clients.find(x=>x.id===id);
-  if(!c) return;
+// View card dialog
+const cv = {
+  dialog: $("#clientView"),
+  name: $("#cvName"),
+  meta: $("#cvMeta"),
+  wa:   $("#cvWA"),
+  call: $("#cvCall"),
+  edit: $("#cvEdit"),
+  del:  $("#cvDelete"),
+  close:$("#cvClose"),
+  currentId: null
+};
+function openClientView(id){
+  const c = _clients.find(x=>x.id===id); if(!c) return;
+  cv.currentId = id;
+  cv.name.textContent = c.name || 'Клиент';
+  const parts = [];
+  if(c.phone) parts.push(`Тел: ${c.phone}`);
+  if(c.email) parts.push(`Email: ${c.email}`);
+  if(c.city) parts.push(`Город: ${c.city}`);
+  if(c.address) parts.push(`Адрес: ${c.address}`);
+  parts.push(`Источник: ${c.source||'—'}`);
+  if(c.note) parts.push(`Заметка: ${c.note}`);
+  cv.meta.textContent = parts.join(' · ');
+  cv.wa.href   = waHref(c.phone, c.name);
+  cv.call.href = `tel:${c.phone||''}`;
+  cv.dialog.showModal();
+}
+clientList.addEventListener('click', (e)=>{
+  const openBtn = e.target.closest('[data-open]');
+  if(openBtn){ openClientView(openBtn.dataset.open); }
+});
+cv.close.addEventListener('click', ()=> cv.dialog.close());
+cv.edit.addEventListener('click', (e)=>{
+  e.preventDefault();
+  if(!cv.currentId) return;
+  const c = _clients.find(x=>x.id===cv.currentId); if(!c) return;
   $("#clId").value = c.id;
   $("#clName").value = c.name||'';
   $("#clPhone").value = c.phone||'';
@@ -296,27 +353,32 @@ settingsClientList.addEventListener('click', (e)=>{
   $("#clAddress").value = c.address||'';
   $("#clSource").value = c.source||'Instagram';
   $("#clNote").value   = c.note||'';
-  clDialog.showModal();
+  cv.dialog.close();
+  $("#clientDialog").showModal();
 });
-$("#clSave").addEventListener('click', async (e)=>{
-  e.preventDefault();
-  const id=$("#clId").value;
+async function deleteClient(id){
+  // проверим наличие сделок
+  const c = _clients.find(x=>x.id===id);
+  if(!c){ alert('Клиент не найден'); return; }
+  const norm = c.phoneNorm || normalizePhoneForWA(c.phone);
+  let hasLeads=false;
   try{
-    await updateDoc(doc(db,'clients',id), {
-      name: $("#clName").value.trim(),
-      phone: $("#clPhone").value.trim(),
-      phoneNorm: normalizePhoneForWA($("#clPhone").value),
-      email: $("#clEmail").value.trim(),
-      city: $("#clCity").value.trim(),
-      address: $("#clAddress").value.trim(),
-      source: $("#clSource").value,
-      note: $("#clNote").value.trim(),
-      updatedAt: serverTimestamp()
-    });
-    clDialog.close();
-  }catch(err){
-    alert('Не удалось сохранить: '+(err.message||err));
-  }
+    const q1 = query(collection(db,'leads'), where('clientId','==', id), limit(1));
+    const q2 = query(collection(db,'leads'), where('phone','==', c.phone||''), limit(1));
+    const s1 = await getDocs(q1); const s2 = await getDocs(q2);
+    hasLeads = !s1.empty || !s2.empty;
+  }catch{}
+  const ok = confirm(`Удалить клиента${hasLeads?' (есть сделки!)':''}?`);
+  if(!ok) return;
+  try{ await deleteDoc(doc(db,'clients',id)); cv.dialog.close(); }catch(e){ alert('Не удалось удалить: '+(e.message||e)); }
+}
+clientList.addEventListener('click', (e)=>{
+  const del = e.target.closest('[data-del-client]');
+  if(del){ deleteClient(del.dataset.delClient); }
+});
+settingsClientList.addEventListener('click', (e)=>{
+  const del = e.target.closest('[data-del-client]');
+  if(del){ deleteClient(del.dataset.delClient); }
 });
 
 // ---- Отчёты
