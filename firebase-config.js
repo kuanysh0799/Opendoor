@@ -1,4 +1,4 @@
-// firebase-config.js — использует ваш проект opendoor-85e8d
+// firebase-config.js — проект opendoor-85e8d
 export const firebaseConfig = {
   apiKey: "AIzaSyDFGSt9lWNg-SmTSuI4Af39XZBNjL9yTIY",
   authDomain: "opendoor-85e8d.firebaseapp.com",
