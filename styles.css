@@ -1,0 +1,4 @@
+.app-header{display:flex;gap:10px;align-items:center;padding:14px;border-bottom:1px solid #e5e7eb;background:#f8fafc}
+.logo{width:28px;height:28px;border-radius:6px}
+.wrap{padding:16px;font:16px/1.5 -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, system-ui}
+.hint{color:#6b7280;font-size:14px;margin-top:8px}

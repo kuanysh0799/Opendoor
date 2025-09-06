@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>OpenDoor CRM</title>
+
+  <!-- iOS: allow A2HS and status bar styling -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="OpenDoor CRM">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+
+  <!-- PWA -->
+  <meta name="theme-color" content="#0F7CFF">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <img class="logo" src="./assets/icon-192.png" alt="logo">
+    <h1>OpenDoor CRM</h1>
+  </header>
+  <main class="wrap">
+    <p>Готово к установке на iPhone.</p>
+    <ol>
+      <li>Открой эту страницу в <strong>Safari</strong> (не Instagram/Telegram).</li>
+      <li>Нажми <strong>Поделиться</strong> (квадрат со стрелкой).</li>
+      <li>Выбери <strong>На экран «Домой»</strong> → <em>Добавить</em>.</li>
+    </ol>
+    <p class="hint">Если кнопка «Добавить» серая: впиши название ярлыка и обнови страницу (потяни вниз).</p>
+  </main>
+
+  <script>
+    // Register service worker for offline (required by iOS web app experience)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>
