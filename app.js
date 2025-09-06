@@ -1,4 +1,4 @@
-// app.js — fix5: double-tap zoom removed, WA chat fix, client save confirmed, remove 'install', reports use 'delivery' as win
+// app.js — fix6: top clients, repeat purchase, bulk archive, drop to collapsed cols
 import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -37,20 +37,14 @@ function toast(msg){
   setTimeout(()=>{ t.remove(); }, 1800);
 }
 
-// Normalize phone for WhatsApp (KZ default) — prefer wa.me always
 function normalizeForWA(p){
   let n = (p||'').replace(/[^\d]/g,'');
   if(!n) return '';
-  // strip leading 00
   if(n.startsWith('00')) n = n.slice(2);
-  // +7KZ cases
-  if(n.startsWith('8') && n.length===11) n = '7' + n.slice(1);        // 8XXXXXXXXXX -> 7XXXXXXXXXX
-  if(n.length===10 && /^7\d{9}$/.test('7'+n.slice(0))) n = '7'+n;    // 10 digits -> add 7
-  if(n.length===9 && /^7\d{8}$/.test('7'+n)) n = '7'+n;              // allow 9 local digits (rare)
-  if(n.startsWith('77') && n.length===12) n = n.slice(1);             // 77... (extra leading 7)
-  // Now if starts with 7 and total 11 digits — good
+  if(n.startsWith('8') && n.length===11) n = '7' + n.slice(1);
+  if(n.length===10 && /^\d{10}$/.test(n)) n = '7'+n;
+  if(n.startsWith('77') && n.length===12) n = n.slice(1);
   if(/^7\d{10}$/.test(n)) return n;
-  // Fallback: if we have at least 9 digits — still try wa.me
   if(n.length>=9) return n;
   return '';
 }
@@ -102,8 +96,8 @@ const kanbanEl = $("#kanban");
 function renderColumns(){
   const collapsed = JSON.parse(localStorage.getItem('od_collapsed')||'[]');
   kanbanEl.innerHTML = STAGES.map(s=>`
-    <section class="od-col ${collapsed.includes(s.id)?'collapsed':''}" data-stage="${s.id}">
-      <header>
+    <section class="od-col ${collapsed.includes(s.id)?'collapsed':''}" data-stage="${s.id}" data-drop="${s.id}">
+      <header data-drop="${s.id}">
         <span>${s.name}</span>
         <div style="display:flex;gap:8px;align-items:center">
           <span class="count">0</span>
@@ -179,6 +173,7 @@ function startRealtime(){
     _deals = snap.docs.map(d=>({id:d.id, ...d.data()}));
     redrawDeals(_deals);
     renderReports();
+    renderTopClients();
   });
 }
 function stopRealtime(){ if(unsub.deals){unsub.deals();unsub.deals=null;} }
@@ -206,6 +201,7 @@ async function deleteLead(id){
 }
 
 function enableDnD(){
+  // Cards
   $$(".od-card").forEach(card=>{
     card.addEventListener("dragstart", e=>{
       e.dataTransfer.setData("text/plain", card.dataset.id);
@@ -217,30 +213,42 @@ function enableDnD(){
       if(docs){ openDocs(docs.dataset.docs); e.stopPropagation(); return; }
     });
   });
-  $$(".list").forEach(list=>{
-    list.addEventListener("dragover", e=>{ e.preventDefault(); list.style.outline="2px dashed var(--brand)"; });
-    list.addEventListener("dragleave", ()=> list.style.outline="none");
-    list.addEventListener("drop", async e=>{
-      e.preventDefault(); list.style.outline="none";
+  // Accept on list AND on collapsed header/column
+  $$(".od-col").forEach(col=>{
+    const onOver = (e)=>{ e.preventDefault(); col.classList.add('drop'); };
+    const onLeave= ()=> col.classList.remove('drop');
+    const onDrop = async (e)=>{
+      e.preventDefault(); col.classList.remove('drop');
       const id = e.dataTransfer.getData("text/plain");
-      const newStage = list.dataset.drop;
+      const newStage = col.dataset.drop;
       try{
         await updateDoc(doc(db,"leads",id), { stage:newStage, updatedAt:serverTimestamp(), managerId: currentUser?.uid || null });
       }catch(err){ alert("Не удалось переместить: "+(err.message||err)); }
-    });
+    };
+    col.addEventListener("dragover", onOver);
+    col.addEventListener("dragleave", onLeave);
+    col.addEventListener("drop", onDrop);
+    const header = col.querySelector('header');
+    header.addEventListener("dragover", onOver);
+    header.addEventListener("dragleave", onLeave);
+    header.addEventListener("drop", onDrop);
   });
 }
 
-function redrawDeals(deals){
+const toggleArchived = $("#toggleArchived");
+function redrawDeals(allDeals){
   renderColumns(); // учесть свёртку
   $$(".od-col .count").forEach(el=>el.textContent="0");
   const dealList = $("#dealList"); dealList.innerHTML="";
+  const showArchived = toggleArchived?.checked;
+  const deals = allDeals.filter(d=> showArchived ? true : !d.archived);
   deals.forEach(d=>{
-    const colList = document.querySelector(`.od-col[data-stage="${d.stage||'lead'}"] .list`) || document.querySelector(`.od-col[data-stage="lead"] .list`);
+    const col = document.querySelector(`.od-col[data-stage="${d.stage||'lead'}"]`);
+    const colList = col?.querySelector(".list");
     if(colList){
       const card = renderCard(d);
       colList.appendChild(card);
-      const cnt= colList.closest(".od-col").querySelector(".count");
+      const cnt= col.querySelector(".count");
       if(cnt) cnt.textContent = (+cnt.textContent+1).toString();
     }
     const row = document.createElement('div');
@@ -249,7 +257,7 @@ function redrawDeals(deals){
     if(d.address) extra.push(d.address);
     if(d.city) extra.push(d.city);
     if(d.email) extra.push(d.email);
-    row.innerHTML = `<div><b>${d.client||'Без имени'}</b> · <span class="badge">${d.stage}</span> · <a href="${waHref(d.phone,d.client)}" target="_blank" rel="noopener">${d.phone||''}</a>
+    row.innerHTML = `<div><b>${d.client||'Без имени'}</b> · <span class="badge">${d.stage}</span> ${d.archived?'<span class="badge">архив</span>':''} · <a href="${waHref(d.phone,d.client)}" target="_blank" rel="noopener">${d.phone||''}</a>
                      ${extra.length?`<small>${extra.join(' · ')}</small>`:''}</div>
                      <div class="row-actions">
                        <button class="od-edit" data-docs="${d.id}">Документы</button>
@@ -263,6 +271,7 @@ function redrawDeals(deals){
   };
   enableDnD();
 }
+toggleArchived?.addEventListener('change', ()=> redrawDeals(_deals));
 
 // ---- Новая сделка + upsert клиента
 addDealBtn?.addEventListener("click", ()=>dealDialog.showModal(), {passive:true});
@@ -305,6 +314,7 @@ dlgSave?.addEventListener("click", async (e)=>{
     const clientId = await upsertClient({name:data.client, phone:data.phone, source:data.source});
     await addDoc(collection(db,"leads"), {...data, clientId: clientId || null});
     dealDialog.close();
+    toast('Сделка создана');
   }catch(err){
     alert("Ошибка сохранения: "+(err.message||err));
   }
@@ -358,6 +368,7 @@ const cv = {
   call: $("#cvCall"),
   edit: $("#cvEdit"),
   del:  $("#cvDelete"),
+  repeat: $("#cvRepeat"),
   close:$("#cvClose"),
   currentId: null
 };
@@ -391,6 +402,25 @@ settingsClientList.addEventListener('click', (e)=>{
   const delBtn  = e.target.closest('[data-del-client]');
   if(editBtn){ openEditClient(editBtn.dataset.edit); }
   if(delBtn){ deleteClient(delBtn.dataset.delClient); }
+});
+
+cv.close.addEventListener('click', ()=> cv.dialog.close());
+cv.edit.addEventListener('click', (e)=>{
+  e.preventDefault();
+  if(!cv.currentId) return;
+  openEditClient(cv.currentId);
+});
+cv.repeat.addEventListener('click', (e)=>{
+  e.preventDefault();
+  if(!cv.currentId) return;
+  const c = _clients.find(x=>x.id===cv.currentId); if(!c) return;
+  // Prefill deal dialog
+  document.getElementById('dlgPrefilled').value = '1';
+  document.getElementById('dlgClient').value = c.name||'';
+  document.getElementById('dlgPhone').value  = c.phone||'';
+  document.getElementById('dlgSource').value = c.source||'Instagram';
+  document.getElementById('dlgBudget').value = '';
+  dealDialog.showModal();
 });
 
 function openEditClient(id){
@@ -510,14 +540,16 @@ function openDocs(id){
   docsDialog.showModal();
 }
 
-// ---- Отчёты по периодам
+// ---- Отчёты по периодам + топ клиенты + архивирование
 let currentPeriod = 'today'; // today | number of days
 $$('.od-period').forEach(b=>b.addEventListener('click',()=>{
   $$('.od-period').forEach(x=>x.classList.remove('od-btn--primary'));
   b.classList.add('od-btn--primary');
   currentPeriod = b.dataset.period;
   renderReports();
+  renderTopClients();
 }));
+
 function inPeriod(ts){
   if(!ts || !ts.toDate) return false;
   const d = ts.toDate();
@@ -529,8 +561,9 @@ function inPeriod(ts){
   const from = new Date(now.getTime() - days*24*60*60*1000);
   return d >= from && d <= now;
 }
+
 function renderReports(){
-  const deals = _deals;
+  const deals = _deals.filter(d=>!d.archived);
   const done = deals.filter(d=> d.stage===DONE_STAGE && inPeriod(d.updatedAt));
   const cnt = done.length;
   const sum = done.reduce((a,b)=>a+(Number(b.budget)||0),0);
@@ -557,6 +590,52 @@ function renderReports(){
     wrap.appendChild(row);
   });
 }
+
+function renderTopClients(){
+  const work = _deals.filter(d=>!d.archived && inPeriod(d.updatedAt));
+  const map = new Map(); // clientId/name -> {name, phone, sum, cnt}
+  work.forEach(d=>{
+    const key = d.clientId || d.client || 'unknown';
+    const v = map.get(key) || {name: d.client||'—', phone: d.phone||'', sum:0, cnt:0};
+    v.sum += Number(d.budget)||0;
+    v.cnt += 1;
+    map.set(key, v);
+  });
+  const arr = [...map.values()];
+  const top = arr.sort((a,b)=>b.sum-a.sum).slice(0,10);
+  const loyal = arr.filter(x=>x.cnt>=2).sort((a,b)=>b.cnt-a.cnt).slice(0,20);
+  const topEl = $("#r-top-clients"); topEl.innerHTML="";
+  if(!top.length) topEl.innerHTML = '<div class="od-empty">Нет данных</div>';
+  top.forEach(c=>{
+    const row = document.createElement('div'); row.className='row';
+    row.innerHTML = `<div><b>${c.name}</b> · <a href="${waHref(c.phone,c.name)}" target="_blank" rel="noopener">${c.phone||''}</a><small>Сделок: ${c.cnt}</small></div>
+                     <div class="row-actions"><div class="badge badge--ok">${money(c.sum)}</div></div>`;
+    topEl.appendChild(row);
+  });
+  const loyalEl = $("#r-loyal"); loyalEl.innerHTML="";
+  if(!loyal.length) loyalEl.innerHTML = '<div class="od-empty">Нет данных</div>';
+  loyal.forEach(c=>{
+    const row = document.createElement('div'); row.className='row';
+    row.innerHTML = `<div><b>${c.name}</b> · <a href="${waHref(c.phone,c.name)}" target="_blank" rel="noopener">${c.phone||''}</a><small>Повторов: ${c.cnt}</small></div>
+                     <div class="row-actions"><div class="badge">${money(c.sum)}</div></div>`;
+    loyalEl.appendChild(row);
+  });
+}
+
+// Архивировать все завершённые
+$("#archiveDone").addEventListener('click', async ()=>{
+  const done = _deals.filter(d=> d.stage===DONE_STAGE && !d.archived);
+  if(!done.length){ toast('Нет завершённых для архива'); return; }
+  if(!confirm(`Архивировать ${done.length} сделок?`)) return;
+  try{
+    for(const d of done){
+      await updateDoc(doc(db,'leads', d.id), { archived:true, archivedAt: serverTimestamp() });
+    }
+    toast('Архив обновлён');
+  }catch(err){
+    alert('Не удалось архивировать: '+(err.message||err));
+  }
+});
 
 // SW
 if('serviceWorker' in navigator){

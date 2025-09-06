@@ -47,7 +47,10 @@
 
   <!-- Сделки -->
   <section id="tab-deals" class="od-view">
-    <div class="od-toolbar"><input id="dealSearch" class="od-input" placeholder="Поиск сделки..."></div>
+    <div class="od-toolbar">
+      <input id="dealSearch" class="od-input" placeholder="Поиск сделки...">
+      <label class="od-chk"><input type="checkbox" id="toggleArchived"> показать архив</label>
+    </div>
     <div id="dealList" class="od-list"></div>
   </section>
 
@@ -65,14 +68,22 @@
       <button class="od-btn od-period" data-period="30">Месяц</button>
       <button class="od-btn od-period" data-period="90">3 мес</button>
       <button class="od-btn od-period" data-period="180">6 мес</button>
+      <button id="archiveDone" class="od-btn" title="Архивировать все завершённые">Архивировать завершённые</button>
     </div>
     <div class="od-cards">
       <div class="od-card"><div class="od-card-title">Сделки</div><div id="r-count" class="od-kpi">0</div></div>
       <div class="od-card"><div class="od-card-title">Выручка</div><div id="r-sum" class="od-kpi">0 ₸</div></div>
       <div class="od-card"><div class="od-card-title">Средний чек</div><div id="r-avg" class="od-kpi">0 ₸</div></div>
     </div>
+
     <h3 class="od-h3">Качество источников</h3>
     <div id="r-sources" class="od-quality"></div>
+
+    <h3 class="od-h3">Топ клиентов по выручке</h3>
+    <div id="r-top-clients" class="od-list"></div>
+
+    <h3 class="od-h3">Постоянные клиенты (повторные покупки)</h3>
+    <div id="r-loyal" class="od-list"></div>
   </section>
 
   <!-- Настройки -->
@@ -87,6 +98,7 @@
 <dialog id="dealDialog" class="od-dialog">
   <form id="dealForm" method="dialog" class="od-form">
     <h3>Новая сделка</h3>
+    <input type="hidden" id="dlgPrefilled" value="0">
     <label>Клиент<input id="dlgClient" class="od-input" required></label>
     <label>Телефон<input id="dlgPhone" class="od-input" inputmode="tel" placeholder="+7 700 000 00 00"></label>
     <label>Бюджет (₸)<input id="dlgBudget" class="od-input" inputmode="numeric"></label>
@@ -135,6 +147,7 @@
     <menu class="od-actions">
       <a id="cvWA" target="_blank" class="od-btn od-btn--primary">WhatsApp</a>
       <a id="cvCall" class="od-btn">Позвонить</a>
+      <button id="cvRepeat" class="od-btn">Повторный закуп</button>
       <button id="cvEdit" class="od-btn">Изменить</button>
       <button id="cvDelete" class="od-btn od-btn--ghost">Удалить</button>
       <button id="cvClose" class="od-btn od-btn--ghost">Закрыть</button>

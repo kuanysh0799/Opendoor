@@ -7,11 +7,11 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto} /* >=15px to reduce zoom on iOS */
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto}
 [hidden]{display:none!important}
 .hidden{display:none!important}
 
-button, .od-btn, .od-tab, .od-fab, a, input, select, textarea{ touch-action: manipulation; font-size:16px; } /* prevent dbl-tap zoom */
+button, .od-btn, .od-tab, .od-fab, a, input, select, textarea{ touch-action: manipulation; font-size:16px; }
 
 html[data-ready="0"] .od-auth{visibility:hidden}
 html[data-ready="1"] .od-auth{visibility:visible}
@@ -55,6 +55,9 @@ html[data-ready="1"] .od-auth{visibility:visible}
 .od-col.collapsed .count{display:none}
 .od-col.collapsed header{border-bottom:none}
 
+/* подсветка при dnd */
+.od-col.drop{outline:2px dashed var(--brand); outline-offset:-6px}
+
 .od-card{position:relative;background:#0e1528;border:1px solid var(--ring);border-radius:12px;padding:10px;cursor:grab}
 :root[data-theme="light"] .od-card{background:#fff}
 .od-card:hover{border-color:var(--brand)}
@@ -68,7 +71,8 @@ html[data-ready="1"] .od-auth{visibility:visible}
 .od-fab{position:fixed;right:16px;bottom:18px;width:56px;height:56px;border-radius:28px;display:grid;place-items:center;
   font-size:28px;color:#fff;background:linear-gradient(90deg,var(--brand),var(--brand-2));border:none;box-shadow:0 10px 30px rgba(0,0,0,.3)}
 
-.od-toolbar{display:flex;gap:10px;padding:12px}
+.od-toolbar{display:flex;gap:10px;padding:12px;align-items:center}
+.od-chk{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:13px}
 .od-input{width:100%;padding:10px 12px;background:transparent;border:1px solid var(--ring);border-radius:10px;color:var(--text)}
 .od-list{display:grid;gap:10px;padding:12px}
 .od-list .row{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px dashed var(--ring);padding:10px;border-radius:10px}
