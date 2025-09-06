@@ -1,3 +1,10 @@
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  // Не трогаем трафик Google Auth и возврат после редиректа
+  if (url.origin.includes("accounts.google.com") || url.pathname.includes("/__/auth/handler")) {
+    return; // не respondWith — пусть браузер сам обработает
+  }
+});
 // sw.js
 const CACHE = 'od-crm-v1';
 const ASSETS = [
