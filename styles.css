@@ -6,12 +6,13 @@
   --bg:#f8fafc; --card:#ffffff; --muted:#475569; --text:#0f172a; --ring:#e2e8f0;
 }
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%; overflow-x:hidden}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto}
 [hidden]{display:none!important}
 .hidden{display:none!important}
 
 button, .od-btn, .od-tab, .od-fab, a, input, select, textarea{ touch-action: manipulation; font-size:16px; }
+img{max-width:100%;height:auto}
 
 html[data-ready="0"] .od-auth{visibility:hidden}
 html[data-ready="1"] .od-auth{visibility:visible}
@@ -27,27 +28,27 @@ html[data-ready="1"] .od-auth{visibility:visible}
 .od-title .sub{font-size:12px;color:var(--muted)}
 .od-right{display:flex;gap:10px;align-items:center}
 
-.od-btn{border:1px solid var(--ring);background:transparent;color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer}
-.od-btn--primary{background:linear-gradient(90deg,var(--brand),var(--brand-2));border:none;color:#fff}
-.od-btn--ghost{background:transparent}
-.od-icon{background:transparent;border:1px solid var(--ring);border-radius:10px;padding:8px;cursor:pointer}
-.od-user{display:flex;gap:8px;align-items:center;border:1px solid var(--ring);padding:6px 8px;border-radius:10px}
-
-.od-tabs{display:flex;gap:10px;padding:10px;border-bottom:1px solid var(--ring);background:var(--card);position:sticky;top:58px;z-index:9}
-.od-tab{border:1px solid var(--ring);background:transparent;color:var(--text);padding:8px 12px;border-radius:12px;cursor:pointer}
+.od-tabs{display:flex;gap:10px;padding:10px;border-bottom:1px solid var(--ring);background:var(--card);position:sticky;top:58px;z-index:9;overflow-x:auto}
+.od-tab{border:1px solid var(--ring);background:transparent;color:var(--text);padding:8px 12px;border-radius:12px;cursor:pointer;white-space:nowrap}
 .od-tab--active{background:linear-gradient(90deg,var(--brand),var(--brand-2));border:none;color:#fff}
 
 .od-page{padding:12px}
 .od-view{display:none}
 .od-view--active{display:block}
 
-.od-kanban{display:grid;grid-template-columns:repeat(5,minmax(260px,1fr));gap:12px;min-height:40vh}
+.od-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0}
+@media (max-width:560px){.od-kpis{grid-template-columns:1fr 1fr}}
+.od-kpi-card{background:var(--card);border:1px solid var(--ring);border-radius:12px;padding:10px}
+.od-kpi-card .t{color:var(--muted);font-size:12px}
+.od-kpi-card .v{font-size:20px;font-weight:700;margin-top:4px}
+
+.od-kanban{display:grid;grid-template-columns:repeat(6,minmax(220px,1fr));gap:12px;min-height:40vh}
 @media (max-width:1100px){.od-kanban{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:720px){.od-kanban{grid-template-columns:repeat(1,1fr)}}
 
-.od-col{position:relative;background:var(--card);border:1px solid var(--ring);border-radius:14px;display:flex;flex-direction:column;min-height:120px}
+.od-col{position:relative;background:var(--card);border:1px solid var(--ring);border-radius:14px;display:flex;flex-direction:column;min-height:120px;min-width:0}
 .od-col header{padding:10px 12px;border-bottom:1px solid var(--ring);font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.od-col .count{color:var(--muted);font-weight:500}
+.od-col .count{color:var(--muted);font-weight:500;white-space:nowrap}
 .od-col .list{padding:10px;display:flex;flex-direction:column;gap:10px;transition:max-height .25s ease, padding .25s ease}
 /* Свернутая колонка — только заголовок */
 .od-col.collapsed{min-height:auto}
@@ -63,7 +64,7 @@ html[data-ready="1"] .od-auth{visibility:visible}
 .od-card:hover{border-color:var(--brand)}
 .od-card .title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .od-card .meta{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
-.badge{font-size:12px;border:1px solid var(--ring);border-radius:999px;padding:2px 8px}
+.badge{font-size:12px;border:1px solid var(--ring);border-radius:999px;padding:2px 8px;white-space:nowrap}
 .badge--ok{border-color:var(--ok);color:#22c55e}
 .badge--warn{border-color:var(--warn);color:#f59e0b}
 .od-card .del{position:absolute;top:6px;right:6px;border:1px solid var(--ring);background:transparent;border-radius:8px;cursor:pointer;padding:0 6px;height:22px;line-height:22px}
@@ -71,20 +72,20 @@ html[data-ready="1"] .od-auth{visibility:visible}
 .od-fab{position:fixed;right:16px;bottom:18px;width:56px;height:56px;border-radius:28px;display:grid;place-items:center;
   font-size:28px;color:#fff;background:linear-gradient(90deg,var(--brand),var(--brand-2));border:none;box-shadow:0 10px 30px rgba(0,0,0,.3)}
 
-.od-toolbar{display:flex;gap:10px;padding:12px;align-items:center}
-.od-chk{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:13px}
+.od-toolbar{display:flex;gap:10px;padding:12px;align-items:center;overflow-x:auto}
+.od-chk{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:13px;white-space:nowrap}
 .od-input{width:100%;padding:10px 12px;background:transparent;border:1px solid var(--ring);border-radius:10px;color:var(--text)}
 .od-list{display:grid;gap:10px;padding:12px}
-.od-list .row{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px dashed var(--ring);padding:10px;border-radius:10px}
+.od-list .row{display:flex;justify-content:space-between;gap:10px;align-items:center;border:1px dashed var(--ring);padding:10px;border-radius:10px;min-width:0}
 .od-list .row small{color:var(--muted);display:block;margin-top:4px}
 .od-edit{border:1px solid var(--ring);border-radius:8px;padding:6px 10px;background:transparent;cursor:pointer}
-.row .row-actions{display:flex;gap:6px;align-items:center}
+.row .row-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
 .row .danger{border-color:#ef4444;color:#ef4444}
 
 .od-empty{opacity:.6;padding:24px;text-align:center}
 
-.od-dialog{border:none;border-radius:14px;padding:0;background:var(--card);color:var(--text)}
-.od-form{padding:16px;min-width:300px;max-width:560px}
+.od-dialog{border:none;border-radius:14px;padding:0;background:var(--card);color:var(--text);max-width:min(560px,92vw)}
+.od-form{padding:16px}
 .od-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:12px}
 .cv-meta{color:var(--muted);line-height:1.6}
 .od-periods .od-btn{padding:6px 10px}

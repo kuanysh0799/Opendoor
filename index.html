@@ -41,6 +41,11 @@
 <main class="od-page">
   <!-- Воронка -->
   <section id="tab-funnel" class="od-view od-view--active">
+    <div class="od-kpis">
+      <div class="od-kpi-card"><div class="t">Лидов</div><div id="k-leads" class="v">0</div></div>
+      <div class="od-kpi-card"><div class="t">Доставок</div><div id="k-deliveries" class="v">0</div></div>
+      <div class="od-kpi-card"><div class="t">Заявок</div><div id="k-total" class="v">0</div></div>
+    </div>
     <div class="od-kanban" id="kanban"></div>
     <button id="addDealBtn" class="od-fab">+</button>
   </section>
@@ -68,7 +73,7 @@
       <button class="od-btn od-period" data-period="30">Месяц</button>
       <button class="od-btn od-period" data-period="90">3 мес</button>
       <button class="od-btn od-period" data-period="180">6 мес</button>
-      <button id="archiveDone" class="od-btn" title="Архивировать все завершённые">Архивировать завершённые</button>
+      <button id="archiveDone" class="od-btn" title="Архивировать завершённые">Архивировать завершённые</button>
     </div>
     <div class="od-cards">
       <div class="od-card"><div class="od-card-title">Сделки</div><div id="r-count" class="od-kpi">0</div></div>

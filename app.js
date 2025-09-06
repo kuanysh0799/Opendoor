@@ -1,4 +1,4 @@
-// app.js — fix6: top clients, repeat purchase, bulk archive, drop to collapsed cols
+// app.js — fix7: mobile fit, per-deal archive btn, return 'install', funnel KPIs
 import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -87,9 +87,10 @@ const STAGES = [
   {id:"consult",     name:"Консультация"},
   {id:"kp",          name:"КП / Накладная"},
   {id:"pay",         name:"Оплата"},
-  {id:"delivery",    name:"Доставка"}
+  {id:"delivery",    name:"Доставка"},
+  {id:"install",     name:"Установка"}
 ];
-const DONE_STAGE = 'delivery';
+const DONE_STAGE = 'install';
 
 // построить колонки (+ Свернуть/Развернуть)
 const kanbanEl = $("#kanban");
@@ -163,7 +164,7 @@ onAuthStateChanged(auth, async (user)=>{
   }
 });
 
-// ---- Сделки realtime + отчёты
+// ---- Сделки realtime + отчёты + кпи
 const unsub = { deals: null };
 let _deals = [];
 function startRealtime(){
@@ -174,6 +175,7 @@ function startRealtime(){
     redrawDeals(_deals);
     renderReports();
     renderTopClients();
+    renderFunnelKPIs();
   });
 }
 function stopRealtime(){ if(unsub.deals){unsub.deals();unsub.deals=null;} }
@@ -190,6 +192,7 @@ function renderCard(d){
       <span class="badge">${d.source||""}</span>
       <span class="badge${d.budget? ' badge--ok':''}">${d.budget? money(d.budget):"—"}</span>
       <button class="od-edit" data-docs="${d.id}">Документы</button>
+      <button class="od-edit" data-archive="${d.id}">Архивировать</button>
     </div>
   `;
   return el;
@@ -198,6 +201,12 @@ function renderCard(d){
 async function deleteLead(id){
   if(!confirm("Удалить эту сделку?")) return;
   try{ await deleteDoc(doc(db,'leads',id)); }catch(e){ alert('Не удалось удалить: '+(e.message||e)); }
+}
+async function archiveLead(id){
+  try{
+    await updateDoc(doc(db,'leads',id), { archived:true, archivedAt: serverTimestamp() });
+    toast('В архиве');
+  }catch(err){ alert('Не удалось архивировать: '+(err.message||err)); }
 }
 
 function enableDnD(){
@@ -211,6 +220,8 @@ function enableDnD(){
       if(del){ deleteLead(del.dataset.del); e.stopPropagation(); return; }
       const docs = e.target.closest('[data-docs]');
       if(docs){ openDocs(docs.dataset.docs); e.stopPropagation(); return; }
+      const arch = e.target.closest('[data-archive]');
+      if(arch){ archiveLead(arch.dataset.archive); e.stopPropagation(); return; }
     });
   });
   // Accept on list AND on collapsed header/column
@@ -261,17 +272,27 @@ function redrawDeals(allDeals){
                      ${extra.length?`<small>${extra.join(' · ')}</small>`:''}</div>
                      <div class="row-actions">
                        <button class="od-edit" data-docs="${d.id}">Документы</button>
-                       <button class="od-edit" data-del-lead="${d.id}">Удалить</button>
+                       <button class="od-edit" data-archive="${d.id}">Архивировать</button>
+                       <button class="od-edit danger" data-del-lead="${d.id}">Удалить</button>
                      </div>`;
     dealList.appendChild(row);
   });
   dealList.onclick = (e)=>{
     const del = e.target.closest('[data-del-lead]'); if(del){ deleteLead(del.dataset.delLead); return; }
     const docs= e.target.closest('[data-docs]'); if(docs){ openDocs(docs.dataset.docs); return; }
+    const arch= e.target.closest('[data-archive]'); if(arch){ archiveLead(arch.dataset.archive); return; }
   };
   enableDnD();
 }
-toggleArchived?.addEventListener('change', ()=> redrawDeals(_deals));
+
+function renderFunnelKPIs(){
+  const active = _deals.filter(d=>!d.archived);
+  const leads = active.filter(d=>d.stage==='lead').length;
+  const deliveries = active.filter(d=>d.stage==='delivery').length;
+  $("#k-leads").textContent = String(leads);
+  $("#k-deliveries").textContent = String(deliveries);
+  $("#k-total").textContent = String(active.length);
+}
 
 // ---- Новая сделка + upsert клиента
 addDealBtn?.addEventListener("click", ()=>dealDialog.showModal(), {passive:true});
@@ -414,7 +435,6 @@ cv.repeat.addEventListener('click', (e)=>{
   e.preventDefault();
   if(!cv.currentId) return;
   const c = _clients.find(x=>x.id===cv.currentId); if(!c) return;
-  // Prefill deal dialog
   document.getElementById('dlgPrefilled').value = '1';
   document.getElementById('dlgClient').value = c.name||'';
   document.getElementById('dlgPhone').value  = c.phone||'';
@@ -540,7 +560,7 @@ function openDocs(id){
   docsDialog.showModal();
 }
 
-// ---- Отчёты по периодам + топ клиенты + архивирование
+// ---- Отчёты + топ клиенты + архивирование
 let currentPeriod = 'today'; // today | number of days
 $$('.od-period').forEach(b=>b.addEventListener('click',()=>{
   $$('.od-period').forEach(x=>x.classList.remove('od-btn--primary'));
