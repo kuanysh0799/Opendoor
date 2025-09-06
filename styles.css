@@ -1,1 +1,11 @@
-body{font-family:sans-serif;background:#0c1224;color:#fff}
+body {margin:0;font-family:Arial,sans-serif;background:#111;color:#fff}
+header {display:flex;justify-content:space-between;align-items:center;padding:10px 15px;background:linear-gradient(90deg,#1e1e2f,#2e2e50);color:#fff}
+.logo {display:flex;align-items:center;gap:10px}
+.logo img {width:32px;height:32px}
+nav {display:flex;background:#222;padding:5px;overflow-x:auto}
+nav button {flex:1;margin:3px;padding:10px;border:none;background:#333;color:#fff;border-radius:8px;cursor:pointer}
+nav button.active {background:#007bff}
+main {padding:15px}
+#fab {position:fixed;bottom:20px;right:20px;background:#007bff;color:#fff;border:none;border-radius:50%;width:56px;height:56px;font-size:24px;cursor:pointer}
+.tab-content {display:none}
+.tab-content.active {display:block}

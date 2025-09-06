@@ -1,1 +1,78 @@
-<!doctype html><html><head><meta charset='utf-8'><title>Opendoor CRM</title></head><body><h1>Opendoor CRM работает!</h1></body></html>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenDoor CRM</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="icon-192.png" />
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="icon-192.png" alt="Logo" />
+      <h1>OpenDoor CRM</h1>
+      <span>Продажи дверей · PWA</span>
+    </div>
+    <div class="controls">
+      <button id="themeToggle">🌙</button>
+      <button id="loginBtn">Войти</button>
+    </div>
+  </header>
+
+  <nav>
+    <button class="tab active" data-tab="funnel">Воронка</button>
+    <button class="tab" data-tab="deals">Сделки</button>
+    <button class="tab" data-tab="clients">Клиенты</button>
+    <button class="tab" data-tab="tasks">Задачи</button>
+    <button class="tab" data-tab="reports">Отчёты</button>
+    <button class="tab" data-tab="settings">Настройки</button>
+  </nav>
+
+  <main>
+    <section id="funnel" class="tab-content active">
+      <h2>Воронка продаж</h2>
+      <ul id="stages">
+        <li>Лид</li>
+        <li>Контакт</li>
+        <li>Консультация</li>
+        <li>КП / Накладная</li>
+        <li>Предоплата / Оплата</li>
+        <li>Доставка</li>
+        <li>Установка</li>
+      </ul>
+      <button id="addDeal">+ Сделка</button>
+    </section>
+
+    <section id="deals" class="tab-content">
+      <h2>Сделки</h2>
+      <ul id="dealList"></ul>
+    </section>
+
+    <section id="clients" class="tab-content">
+      <h2>Клиенты</h2>
+      <ul id="clientList"></ul>
+    </section>
+
+    <section id="tasks" class="tab-content">
+      <h2>Задачи</h2>
+      <p>Здесь будут напоминания о доставке и установке.</p>
+    </section>
+
+    <section id="reports" class="tab-content">
+      <h2>Отчёты</h2>
+      <p>Эффективность менеджеров, выручка, маржа и топ-товары.</p>
+    </section>
+
+    <section id="settings" class="tab-content">
+      <h2>Настройки</h2>
+      <p>Роли: владелец, менеджер, склад, бухгалтер, доставщик.</p>
+    </section>
+  </main>
+
+  <button id="fab">+</button>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
