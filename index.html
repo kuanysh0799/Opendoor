@@ -1,46 +1,119 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>OpenDoor CRM</title>
+  <meta name="theme-color" content="#0b1020">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="icon" href="assets/icon-192.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <img src="assets/apple-touch-icon.png" alt="logo" class="logo">
-    <h1>OpenDoor CRM</h1>
-    <button id="installBtn">⬇ Установить</button>
-  </header>
+  <div class="appbar">
+    <div class="brand">
+      <img src="assets/icon-192.png" class="logo" alt="logo">
+      <div>
+        <div class="appname">OpenDoor CRM</div>
+        <div class="tagline">Продажи дверей · облако · PWA</div>
+      </div>
+    </div>
+    <div class="app-actions">
+      <button id="installBtn" class="ghost sm">Установить</button>
+      <button id="themeBtn" class="ghost sm">Тема</button>
+    </div>
+  </div>
 
-  <nav>
+  <div class="tabs">
     <button class="tab active" data-tab="pipeline">Воронка</button>
     <button class="tab" data-tab="deals">Сделки</button>
     <button class="tab" data-tab="clients">Клиенты</button>
-  </nav>
+    <button class="tab" data-tab="docs">Документы</button>
+    <button class="tab" data-tab="reports">Отчёты</button>
+    <button class="tab" data-tab="settings">Настройки</button>
+  </div>
 
-  <main>
-    <section id="pipeline" class="tab-content active">
-      <h2>Воронка</h2>
-      <p>Ваши сделки будут отображаться здесь.</p>
+  <main class="container">
+    <section id="authBox" class="card auth">
+      <div class="card-body">
+        <h3>Войдите через Google</h3>
+        <p class="muted">Единая база в Firestore для всех сотрудников.</p>
+        <button id="loginBtn" class="btn google">Войти через Google</button>
+        <div id="userInfo" class="user"></div>
+      </div>
     </section>
-    <section id="deals" class="tab-content">
-      <h2>Сделки</h2>
-      <p>Добавляйте и управляйте продажами дверей.</p>
+
+    <section id="pipeline" class="tabpane active">
+      <div class="card">
+        <div class="card-head">
+          <h3>Воронка продаж</h3>
+          <button id="newDealBtn" class="btn primary">＋ Сделка</button>
+        </div>
+        <div class="stages">
+          <div class="stage">Лид</div>
+          <div class="stage">Контакт</div>
+          <div class="stage">Консультация</div>
+          <div class="stage">КП / Накладная</div>
+          <div class="stage">Оплата</div>
+          <div class="stage">Доставка</div>
+          <div class="stage">Установка</div>
+        </div>
+        <div class="hint muted">После входа появятся реальные данные.</div>
+      </div>
     </section>
-    <section id="clients" class="tab-content">
-      <h2>Клиенты</h2>
-      <p>Список ваших клиентов.</p>
+
+    <section id="deals" class="tabpane">
+      <div class="card">
+        <div class="card-head">
+          <h3>Сделки</h3>
+          <button id="newDealBtn2" class="btn primary">＋ Новая сделка</button>
+        </div>
+        <div id="dealsList" class="list"></div>
+      </div>
+    </section>
+
+    <section id="clients" class="tabpane">
+      <div class="card">
+        <div class="card-head"><h3>Клиенты</h3></div>
+        <div id="clientsList" class="list"></div>
+      </div>
+    </section>
+
+    <section id="docs" class="tabpane">
+      <div class="card">
+        <h3>Документы</h3>
+        <ul class="bullets muted">
+          <li>КП (PDF)</li>
+          <li>Счёт</li>
+          <li>Акт, Договор, Накладная</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="reports" class="tabpane">
+      <div class="card">
+        <h3>Отчёты</h3>
+        <p class="muted">Эффективность менеджеров, выручка, маржа, ТОП товары.</p>
+      </div>
+    </section>
+
+    <section id="settings" class="tabpane">
+      <div class="card">
+        <h3>Настройки</h3>
+        <div class="row">
+          <button id="logoutBtn" class="btn danger">Выйти</button>
+        </div>
+      </div>
     </section>
   </main>
 
-  <footer>
-    <button id="loginBtn">Войти через Google</button>
-  </footer>
+  <button id="fab" class="fab">＋</button>
 
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js'); }
+  </script>
 </body>
 </html>
