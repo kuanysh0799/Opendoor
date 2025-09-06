@@ -1,14 +1,19 @@
-# OpenDoor CRM — v15
-Изменения:
-- Карточка клиента (открывается из раздела Клиенты).
-- WhatsApp по клику на телефон (везде).
-- Кнопка «Дальше →» у сделки в воронке и списке (переход на следующий этап).
-- Логотип в хедере (замени assets/logo.png на свой PNG).
-- Только тёмная тема (светлый режим отключён).
-- Экспорт отчётов в Excel (CSV).
-- Убрана вкладка «Настройки».
+# OpenDoor CRM (PWA + Firebase)
+1) В Firebase Console → Authentication: включите Google и добавьте домен `kuanysh0799.github.io` в Authorized domains.
+2) Проверьте `firebase-config.js` (ключи уже стоят).
+3) Залейте файлы в GitHub Pages (ветка `main`, папка `/Opendoor` или корень репозитория).
+4) Откройте сайт → Войти → работаем.
 
-Запуск:
-1) Залей в GitHub Pages (Opendoor).
-2) Firestore → Rules → вставь `firestore.rules` → Publish.
-3) Открой: `https://kuanysh0799.github.io/Opendoor/?v=15`.
+### Firestore Rules (минимальные для старта)
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+
+Позже можно ужесточить правила под роли `owner/manager`.

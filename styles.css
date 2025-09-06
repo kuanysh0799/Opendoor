@@ -1,139 +1,39 @@
-/* ===== Базовые цвета ===== */
-:root{
-  --bg:#0b0f17;           /* общий фон */
-  --panel:#0f172a;        /* блоки/карточки */
-  --text:#e9eef6;         /* основной текст */
-  --muted:#98a3b3;        /* вспомогательный текст */
-  --border:#1c2434;       /* рамки */
-  --brand1:#162a46;       /* градиент шапки слева */
-  --brand2:#3a2f78;       /* градиент шапки справа */
-  --primary:#2f7af9;      /* основной акцент (кнопки) */
-  --danger:#f34d4d;       /* опасные действия */
-  --chip:#111a2b;         /* чипы/таб-pill */
-}
-
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font:16px/1.45 -apple-system,BlinkMacSystemFont,Inter,Segoe UI,Roboto,Arial;
-}
-
-/* ===== Шапка (градиент + логотип + кнопки) ===== */
-.appbar{
-  position:sticky; top:0; z-index:10;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:12px 16px;
-  background:linear-gradient(120deg,var(--brand1),var(--brand2));
-  border-bottom:1px solid rgba(255,255,255,.06);
-}
-.brand{display:flex; align-items:center; gap:12px}
-.logo{width:30px;height:30px;border-radius:8px;background:#fff}
-h1{margin:0;font-size:20px;font-weight:800;letter-spacing:.2px}
-.subtitle{font-size:12px;opacity:.8}
-
-.actions{display:flex; gap:10px; align-items:center}
-.icon-btn{
-  border:1px solid rgba(255,255,255,.25);
-  background:rgba(255,255,255,.08);
-  color:#fff; padding:8px 10px; border-radius:12px;
-}
-.user-badge{padding:8px 12px;background:rgba(255,255,255,.14);border-radius:12px}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;color:#e5e7eb;background:#0b1220}
+.appbar{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:linear-gradient(90deg,#0f172a,#1e293b);position:sticky;top:0;z-index:10;border-bottom:1px solid #0b1020}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:32px;height:32px;border-radius:8px}
+h1{margin:0;font-size:18px;letter-spacing:.3px}
+.subtitle{font-size:12px;color:#9ca3af;margin-top:2px}
+.actions{display:flex;gap:8px;align-items:center}
+button{border:0;border-radius:10px;padding:10px 14px;font-weight:600;color:#e5e7eb;background:#1f2937;cursor:pointer;transition:.2s}
+button.primary{background:#2563eb}
+button.ghost{background:transparent;border:1px solid #334155}
+button.small{padding:6px 10px;font-size:12px}
+button:disabled{opacity:.6;cursor:not-allowed}
+.chip{background:#111827;border:1px solid #374151;padding:6px 10px;border-radius:999px;font-size:12px}
 .hidden{display:none}
 
-/* ===== Таб-навигация — «пилюли» 3×2 на мобиле ===== */
-.tabs{
-  display:flex; flex-wrap:wrap; gap:12px;
-  padding:12px 16px;
-  background:#0b1220;
-  border-bottom:1px solid var(--border);
-}
-.tab{
-  background:var(--chip);
-  border:1px solid var(--border);
-  color:#c9d5e4;
-  padding:10px 14px;
-  border-radius:14px;          /* закруглённые как раньше */
-  font-weight:600;
-}
-.tab.active{
-  color:#fff;
-  outline:2px solid var(--primary);
-  outline-offset:0;
-}
+.tabs{display:flex;gap:10px;padding:10px 16px;background:#0b1220;position:sticky;top:61px;z-index:9}
+.tab{padding:10px 16px;border:1px solid #1f2937;background:#0b1220}
+.tab.active{background:#0f172a;border-color:#334155}
 
-/* ===== Контент ===== */
-.container{padding:16px}
-.tab-panel{display:none}
-.tab-panel.active{display:block}
+main{padding:16px}
+.page{display:none}
+.page.active{display:block}
+.section-title{display:flex;justify-content:space-between;align-items:center}
+.kanban{display:grid;grid-template-columns:repeat(7,minmax(220px,1fr));gap:12px;overflow:auto;padding-bottom:64px}
+.column{background:#0f172a;border:1px solid #1f2937;border-radius:12px;min-height:240px;display:flex;flex-direction:column}
+.column h3{margin:0;padding:10px 12px;border-bottom:1px solid #1f2937;font-size:14px;color:#cbd5e1}
+.cards{padding:8px;display:flex;flex-direction:column;gap:8px}
+.card{background:#111827;border:1px solid #1f2937;border-radius:10px;padding:10px}
+.card .row{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#9ca3af}
+.fab{position:fixed;right:18px;bottom:22px;width:56px;height:56px;border-radius:50%;font-size:26px;background:#2563eb;box-shadow:0 10px 24px rgba(37,99,235,.35)}
 
-.hint{margin:10px 2px;color:var(--muted)}
-
-/* ===== Инпуты и кнопки ===== */
-.input{
-  width:100%; padding:10px 12px;
-  background:#0e1627; color:var(--text);
-  border:1px solid var(--border); border-radius:12px;
-}
-.toolbar{display:flex; gap:10px; margin-bottom:12px}
-
-.btn{border:0;border-radius:14px;padding:10px 14px;font-weight:700}
-.btn.primary{background:var(--primary);color:#fff}
-.btn.outline{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff}
-.btn.danger{background:var(--danger);color:#fff}
-
-/* ===== Карточки/списки ===== */
-.list{display:flex; flex-direction:column; gap:12px}
-.card{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:12px 14px;
-}
-.card-title{font-weight:700;margin-bottom:6px}
-.stat{font-size:22px;font-weight:800}
-.chip{
-  display:inline-block;background:var(--chip);
-  border:1px solid var(--border); color:#cfe3ff;
-  padding:6px 10px;border-radius:999px
-}
-
-/* ===== Воронка ===== */
-.funnel{display:grid; gap:14px; grid-template-columns:1fr}
-@media (min-width:900px){ .funnel{grid-template-columns:repeat(3,1fr)} }
-
-.stage{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:16px; padding:12px;
-}
-.stage h4{margin:6px 4px 10px 4px; font-size:15px}
-.stage .kpi{display:flex; gap:8px; flex-wrap:wrap; margin:6px 2px}
-.deal{
-  background:#0f172a; border:1px solid var(--border); border-radius:14px;
-  padding:10px; margin:8px 0;
-}
-.deal .row{display:flex; justify-content:space-between; gap:10px}
-.deal .meta{color:var(--muted); font-size:12px; margin-top:6px}
-
-/* ===== Диалог ===== */
-.dialog{border:none;border-radius:16px;padding:0;background:transparent}
-.dialog::backdrop{background:rgba(0,0,0,.6)}
-.dialog-body{
-  background:var(--panel); border:1px solid var(--border);
-  border-radius:18px; padding:16px; width:min(680px,92vw)
-}
-.dialog-menu{display:flex; justify-content:flex-end; gap:10px; margin-top:14px}
-.grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
-.grid .full{grid-column:1/-1}
-
-/* ===== FAB (синий круг внизу) ===== */
-.fab{
-  position:fixed; right:18px; bottom:22px;
-  width:64px; height:64px; border-radius:50%;
-  background:var(--primary); color:#fff; border:none;
-  font-size:28px; font-weight:800;
-  box-shadow:0 12px 28px rgba(47,122,249,.38);
-}
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.input{padding:10px 12px;border-radius:10px;border:1px solid #1f2937;background:#0f172a;color:#e5e7eb;min-width:220px}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.list li{background:#0f172a;border:1px solid #1f2937;border-radius:10px;padding:10px}
+.badge{font-size:11px;background:#1f2937;padding:2px 8px;border-radius:999px;margin-left:6px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.kpi .tile{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:14px}
+.note{white-space:pre-wrap;background:#0b1220;border:1px dashed #334155;border-radius:10px;padding:12px;color:#9ca3af}

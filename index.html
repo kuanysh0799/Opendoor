@@ -1,137 +1,78 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>OpenDoor CRM</title>
-
-  <!-- iOS PWA -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="theme-color" content="#0d1117"/>
-
-  <link rel="icon" href="./icon-192.png">
-  <link rel="stylesheet" href="./styles.css">
+  <meta name="theme-color" content="#0f172a"/>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="appbar">
     <div class="brand">
-      <img src="./apple-touch-icon.png" alt="logo" class="logo">
+      <img src="icon-192.png" alt="logo" class="logo">
       <div>
         <h1>OpenDoor CRM</h1>
-        <div class="subtitle">Продажи дверей · PWA</div>
+        <div class="subtitle">Продажи дверей • PWA</div>
       </div>
     </div>
     <div class="actions">
-      <button id="themeBtn" class="icon-btn" title="Тема">🌙</button>
-      <button id="loginBtn" class="btn outline">Войти</button>
-      <div id="userBadge" class="user-badge hidden"></div>
+      <button id="installBtn" class="ghost small">Установить</button>
+      <div id="userChip" class="chip hidden"></div>
+      <button id="loginBtn" class="primary">Войти</button>
+      <button id="logoutBtn" class="ghost hidden">Выйти</button>
     </div>
   </header>
 
   <nav class="tabs">
-    <button class="tab active" data-tab="funnel">Воронка</button>
+    <button class="tab active" data-tab="pipeline">Воронка</button>
     <button class="tab" data-tab="deals">Сделки</button>
     <button class="tab" data-tab="clients">Клиенты</button>
     <button class="tab" data-tab="reports">Отчёты</button>
     <button class="tab" data-tab="settings">Настройки</button>
   </nav>
 
-  <main class="container">
-    <!-- Воронка -->
-    <section id="tab-funnel" class="tab-panel active">
-      <div id="funnelList" class="funnel"></div>
-      <div class="hint">После входа появятся ваши сделки, сгруппированные по этапам.</div>
+  <main>
+    <section id="pipeline" class="page active">
+      <div class="section-title">
+        <h2>Воронка продаж</h2>
+        <button id="addDealFab" class="fab">+</button>
+      </div>
+      <div id="pipelineBoard" class="kanban">
+        <!-- колонки формируются скриптом -->
+      </div>
     </section>
 
-    <!-- Сделки -->
-    <section id="tab-deals" class="tab-panel">
+    <section id="deals" class="page">
       <div class="toolbar">
-        <input id="dealSearch" class="input" placeholder="Поиск по имени/телефону/примечанию">
+        <button id="newDealBtn" class="primary">+ Сделка</button>
       </div>
-      <div id="dealList" class="list"></div>
+      <ul id="dealsList" class="list"></ul>
     </section>
 
-    <!-- Клиенты -->
-    <section id="tab-clients" class="tab-panel">
+    <section id="clients" class="page">
       <div class="toolbar">
-        <input id="clientSearch" class="input" placeholder="Поиск клиента (имя/телефон)">
+        <input id="clientSearch" class="input" placeholder="Поиск клиента: имя или телефон">
+        <button id="newClientBtn" class="primary">+ Клиент</button>
       </div>
-      <div id="clientList" class="list"></div>
+      <ul id="clientsList" class="list"></ul>
     </section>
 
-    <!-- Отчёты -->
-    <section id="tab-reports" class="tab-panel">
-      <div class="cards">
-        <div class="card">
-          <div class="card-title">Выручка (месяц)</div>
-          <div id="revMonth" class="stat">—</div>
-        </div>
-        <div class="card">
-          <div class="card-title">Маржа (месяц)</div>
-          <div id="marginMonth" class="stat">—</div>
-        </div>
-        <div class="card">
-          <div class="card-title">Конверсия</div>
-          <div id="convRate" class="stat">—</div>
-        </div>
-      </div>
-      <div class="hint">Первые простые метрики. Расширим после запуска.</div>
+    <section id="reports" class="page">
+      <h2>Отчёты</h2>
+      <div id="kpi" class="kpi"></div>
     </section>
 
-    <!-- Настройки -->
-    <section id="tab-settings" class="tab-panel">
-      <div class="group">
-        <label>Роль в системе</label>
-        <div id="roleText" class="chip">—</div>
-      </div>
-      <div class="group">
-        <label>Статусы воронки</label>
-        <div class="chips" id="stagesChips"></div>
-      </div>
-      <div class="group">
-        <label>Оффлайн очередь</label>
-        <div id="queueInfo" class="hint">Очередь пуста</div>
-      </div>
-      <div class="group">
-        <button id="logoutBtn" class="btn danger">Выйти</button>
-      </div>
+    <section id="settings" class="page">
+      <h2>Настройки</h2>
+      <p>Приложение офлайн-готово. Для iPhone: поделиться → На экран «Домой».</p>
+      <pre class="note">Если вход не срабатывает в браузере внутри мессенджера — откройте страницу в Safari/Chrome.</pre>
     </section>
   </main>
 
-  <!-- FAB -->
-  <button id="fab" class="fab">＋</button>
-
-  <!-- Модалка сделки -->
-  <dialog id="dealDialog" class="dialog">
-    <form method="dialog" class="dialog-body" id="dealForm">
-      <h3 id="dealDialogTitle">Новая сделка</h3>
-      <div class="grid">
-        <label>Клиент <input required id="d_client" class="input" placeholder="Имя клиента"></label>
-        <label>Телефон <input id="d_phone" class="input" placeholder="+7..."></label>
-        <label>Источник
-          <select id="d_source" class="input">
-            <option>Instagram</option><option>WhatsApp</option><option>2ГИС</option>
-            <option>Рекомендации</option><option>Объявление</option><option>Звонок</option>
-            <option>Визит в магазин</option>
-          </select>
-        </label>
-        <label>Сумма (₸)<input type="number" id="d_amount" class="input" min="0"></label>
-        <label>Маржа (₸)<input type="number" id="d_margin" class="input" min="0"></label>
-        <label>Этап
-          <select id="d_stage" class="input"></select>
-        </label>
-        <label class="full">Комментарий <textarea id="d_note" class="input" rows="3"></textarea></label>
-      </div>
-      <menu class="dialog-menu">
-        <button value="cancel" class="btn outline">Отмена</button>
-        <button id="dealSaveBtn" class="btn primary" value="default">Сохранить</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
