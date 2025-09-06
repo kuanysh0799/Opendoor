@@ -1,38 +1,11 @@
-:root{
-  --bg:#0b0e12; --card:#0f141a; --ink:#e5e7eb; --muted:#9aa5b1; --border:#1f2937;
-  --primary:#0F7CFF; --accent:#7B61FF; --shadow:0 10px 30px rgba(0,0,0,.35); --radius:16px;
-}
-:root.light{ --bg:#ffffff; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --border:#e5e7eb; --shadow:0 6px 26px rgba(0,0,0,.08); }
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,system-ui,Segoe UI,Roboto}
-.app-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border);
-  background:linear-gradient(135deg, rgba(15,124,255,.15), rgba(123,97,255,.15));backdrop-filter:blur(10px)}
-.brand{display:flex;align-items:center;gap:10px}.brand .t h1{margin:0;font-size:18px;font-weight:800}.brand .t span{font-size:12px;color:var(--muted)}
-.logo{width:34px;height:34px;border-radius:8px}
-.grow{flex:1}
-.icon{border:1px solid var(--border);background:var(--card);padding:8px 10px;border-radius:12px;color:var(--ink)}
-.btn{border:1px solid var(--border);background:var(--card);color:var(--ink);padding:12px;border-radius:12px}
-.btn.small{padding:8px 10px;font-size:13px}.btn.ghost{background:transparent}
-.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
-.tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:10px;border-bottom:1px solid var(--border);position:sticky;top:66px;z-index:10;background:var(--bg)}
-.tabs button{padding:10px;border:1px solid var(--border);background:var(--card);border-radius:12px;color:var(--ink)}
-.tabs button.active{outline:2px solid var(--primary)}
-#app{padding:12px 12px 90px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:10px;box-shadow:var(--shadow)}
-.kb{color:var(--muted);font-size:12px}
-.badge{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px}
-.stage{padding:6px 10px;border-radius:999px;border:1px dashed var(--primary);color:var(--primary)}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.fab{position:fixed;right:16px;bottom:16px;background:var(--primary);color:#fff;border:0;border-radius:20px;padding:14px 18px;font-size:18px;box-shadow:0 10px 30px rgba(15,124,255,.5)}
-.sheet{position:fixed;left:0;right:0;bottom:0;top:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:.2s}
-.sheet.show{opacity:1;pointer-events:auto}.sheet-box{background:var(--card);border:1px solid var(--border);border-top-left-radius:18px;border-top-right-radius:18px;width:100%;max-height:86vh;overflow:auto;padding:12px 12px 20px}
-.sheet-head{display:flex;align-items:center;margin-bottom:8px}
-.field{display:flex;flex-direction:column;gap:6px}
-.input, select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--ink)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.items h4{margin:10px 0}.item{display:grid;grid-template-columns:1.2fr .6fr .6fr .6fr 36px;gap:8px;margin-bottom:8px}
-.item .del{border:1px solid var(--border);border-radius:10px;background:transparent;color:#ef4444}
-.totals{margin-top:8px;display:flex;gap:12px;flex-wrap:wrap}
-.totals .pill{padding:8px 10px;border-radius:999px;border:1px solid var(--border)}
-.actions{display:flex;justify-content:flex-end;margin-top:10px}
-@media (max-width:860px){.tabs{grid-template-columns:repeat(3,1fr)} .grid{grid-template-columns:1fr} .item{grid-template-columns:1fr .6fr .6fr .6fr 36px}}
+body { font-family: Arial, sans-serif; margin:0; background:#f4f4f4; }
+header { display:flex; align-items:center; justify-content:space-between; padding:10px; background:#222; color:#fff; }
+header .logo { height:40px; }
+nav { display:flex; justify-content:space-around; background:#444; }
+nav button { flex:1; padding:10px; background:#444; color:#fff; border:none; cursor:pointer; }
+nav button.active { background:#666; }
+main { padding:20px; }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+footer { text-align:center; padding:15px; background:#222; color:#fff; }
+button { border-radius:5px; }
