@@ -336,13 +336,27 @@ SCREENS.settings = () => {
 // CLIENTS
 SCREENS.clients = () => {
   const el = document.createElement('div');
-  const input = document.createElement('input'); input.className='input'; input.placeholder='Поиск клиента...';
+  const input = document.createElement('input');
+  input.className = 'input';
+  input.placeholder = 'Поиск клиента...';
   el.appendChild(input);
-  deals.forEach(d=>{
-    const c = document.createElement('div'); c.className='card';
-    c.innerHTML = `<h3 style="margin:0 0 4px 0">${d.name}</h3><div class="kb">${d.phone} • ${d.source}</div>`;
-    el.appendChild(c);
-  });
+
+  const list = document.createElement('div');
+  el.appendChild(list);
+
+  function renderList(filter='') {
+    list.innerHTML = '';
+    const f = filter.trim().toLowerCase();
+    deals
+      .filter(d => !f || (d.name||'').toLowerCase().includes(f) || (d.phone||'').toLowerCase().includes(f))
+      .forEach(d => {
+        const c = document.createElement('div'); c.className='card';
+        c.innerHTML = `<h3 style="margin:0 0 4px 0">${d.name}</h3><div class="kb">${d.phone} • ${d.source}</div>`;
+        list.appendChild(c);
+      });
+  }
+  input.addEventListener('input', ()=> renderList(input.value));
+  renderList();
   return el;
 };
 
