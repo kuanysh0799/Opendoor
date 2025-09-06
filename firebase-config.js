@@ -1,10 +1,10 @@
-// firebase-config.js — проект opendoor-85e8d
+// firebase-config.js
+// ВСТАВЬ СВОЙ КОНФИГ из Firebase Console → Project settings → Web app
 export const firebaseConfig = {
-  apiKey: "AIzaSyDFGSt9lWNg-SmTSuI4Af39XZBNjL9yTIY",
-  authDomain: "opendoor-85e8d.firebaseapp.com",
-  projectId: "opendoor-85e8d",
-  storageBucket: "opendoor-85e8d.firebasestorage.app",
-  messagingSenderId: "212873682532",
-  appId: "1:212873682532:web:d4a9f89a596faffced4971",
-  measurementId: "G-4D57SWBCF5"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };

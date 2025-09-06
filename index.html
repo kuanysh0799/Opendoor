@@ -1,214 +1,206 @@
 <!doctype html>
-<html lang="ru" data-ready="0">
+<html lang="ru">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"/>
-  <title>OpenDoor CRM</title>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <link rel="icon" href="./icon-192.png" type="image/png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>OpenDoor CRM · Продажи дверей · PWA</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="theme-color" content="#0f172a">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // iOS: disable double-tap zoom
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function (event) {
+      var now = (new Date()).getTime();
+      if (now - lastTouchEnd <= 300) { event.preventDefault(); }
+      lastTouchEnd = now;
+    }, false);
+  </script>
 </head>
 <body>
-<header class="od-appbar">
-  <div class="od-left">
-    <img src="./apple-touch-icon.png" alt="OpenDoor" class="od-logo">
-    <div class="od-title">
-      <div class="name">OpenDoor CRM</div>
-      <div class="sub">Продажи дверей · PWA</div>
-    </div>
-  </div>
-
-  <div class="od-right od-auth" hidden>
-    <button id="themeBtn" class="od-icon" aria-label="Тема">🌓</button>
-    <div id="userChip" class="od-user hidden">
-      <span id="userName">—</span>
-      <button id="logoutBtn" class="od-btn od-btn--ghost">Выйти</button>
-    </div>
-    <button id="loginBtn" class="od-btn od-btn--primary">Войти через Google</button>
-  </div>
-</header>
-
-<nav class="od-tabs">
-  <button class="od-tab od-tab--active" data-tab="funnel">Воронка</button>
-  <button class="od-tab" data-tab="deals">Сделки</button>
-  <button class="od-tab" data-tab="clients">Клиенты</button>
-  <button class="od-tab" data-tab="reports">Отчёты</button>
-  <button class="od-tab" data-tab="settings">Настройки</button>
-</nav>
-
-<main class="od-page">
-  <!-- Воронка -->
-  <section id="tab-funnel" class="od-view od-view--active">
-    <div class="od-kpis">
-      <div class="od-kpi-card"><div class="t">Лидов</div><div id="k-leads" class="v">0</div></div>
-      <div class="od-kpi-card"><div class="t">Доставок</div><div id="k-deliveries" class="v">0</div></div>
-      <div class="od-kpi-card"><div class="t">Заявок</div><div id="k-total" class="v">0</div></div>
-    </div>
-    <div class="od-kanban" id="kanban"></div>
-    <button id="addDealBtn" class="od-fab">+</button>
-  </section>
-
-  <!-- Сделки -->
-  <section id="tab-deals" class="od-view">
-    <div class="od-toolbar">
-      <input id="dealSearch" class="od-input" placeholder="Поиск сделки...">
-      <label class="od-chk"><input type="checkbox" id="toggleArchived"> показать архив</label>
-    </div>
-    <div id="dealList" class="od-list"></div>
-  </section>
-
-  <!-- Клиенты -->
-  <section id="tab-clients" class="od-view">
-    <div class="od-toolbar"><input id="clientSearch" class="od-input" placeholder="Поиск клиента (имя/телефон/email/город)..."></div>
-    <div id="clientList" class="od-list"></div>
-  </section>
-
-  <!-- Отчёты -->
-  <section id="tab-reports" class="od-view">
-    <div class="od-toolbar od-periods">
-      <button class="od-btn od-period od-btn--primary" data-period="today">Сегодня</button>
-      <button class="od-btn od-period" data-period="7">7 дней</button>
-      <button class="od-btn od-period" data-period="30">Месяц</button>
-      <button class="od-btn od-period" data-period="90">3 мес</button>
-      <button class="od-btn od-period" data-period="180">6 мес</button>
-      <button id="archiveDone" class="od-btn" title="Архивировать завершённые">Архивировать завершённые</button>
-    </div>
-    <div class="od-cards">
-      <div class="od-card"><div class="od-card-title">Сделки</div><div id="r-count" class="od-kpi">0</div></div>
-      <div class="od-card"><div class="od-card-title">Выручка</div><div id="r-sum" class="od-kpi">0 ₸</div></div>
-      <div class="od-card"><div class="od-card-title">Средний чек</div><div id="r-avg" class="od-kpi">0 ₸</div></div>
+  <header class="topbar">
+    <div class="brand">
+      <img src="logo.png" alt="OpenDoor" class="logo">
+      <div class="brand-txt">
+        <div class="title">OpenDoor CRM</div>
+        <div class="sub">Продажи дверей · PWA</div>
+      </div>
     </div>
 
-    <h3 class="od-h3">Качество источников</h3>
-    <div id="r-sources" class="od-quality"></div>
+    <div class="top-actions">
+      <button id="installBtn" class="btn ghost">Установить</button>
+      <div id="userBox" class="userbox hidden">
+        <img id="userPhoto" class="avatar" alt="">
+        <span id="userName" class="uname"></span>
+        <button id="logoutBtn" class="btn danger">Выйти</button>
+      </div>
+      <button id="loginBtn" class="btn primary">Войти через Google</button>
+    </div>
+  </header>
 
-    <h3 class="od-h3">Топ клиентов по выручке</h3>
-    <div id="r-top-clients" class="od-list"></div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="pipeline">Воронка</button>
+    <button class="tab" data-tab="deals">Сделки</button>
+    <button class="tab" data-tab="clients">Клиенты</button>
+    <button class="tab" data-tab="reports">Отчёты</button>
+    <button class="tab" data-tab="settings">Настройки</button>
+  </nav>
 
-    <h3 class="od-h3">Постоянные клиенты (повторные покупки)</h3>
-    <div id="r-loyal" class="od-list"></div>
-  </section>
-
-  <!-- Настройки -->
-  <section id="tab-settings" class="od-view">
-    <h3 class="od-h3">Редактирование клиентов</h3>
-    <div class="od-toolbar"><input id="settingsClientSearch" class="od-input" placeholder="Найти клиента (имя/телефон/email/город)"></div>
-    <div id="settingsClientList" class="od-list"></div>
-  </section>
-</main>
-
-<!-- Диалог новой сделки -->
-<dialog id="dealDialog" class="od-dialog">
-  <form id="dealForm" method="dialog" class="od-form">
-    <h3>Новая сделка</h3>
-    <input type="hidden" id="dlgPrefilled" value="0">
-    <label>Клиент<input id="dlgClient" class="od-input" required></label>
-    <label>Телефон<input id="dlgPhone" class="od-input" inputmode="tel" placeholder="+7 700 000 00 00"></label>
-    <label>Бюджет (₸)<input id="dlgBudget" class="od-input" inputmode="numeric"></label>
-    <label>Источник
-      <select id="dlgSource" class="od-input">
-        <option>Instagram</option><option>WhatsApp</option><option>2ГИС</option>
-        <option>Рекомендации</option><option>Объявление</option><option>Визит в магазин</option>
-      </select>
+  <!-- Counters row -->
+  <section class="counters">
+    <span class="pill" id="cnt-lead">Лид: 0</span>
+    <span class="pill" id="cnt-consult">Консультация: 0</span>
+    <span class="pill" id="cnt-kp">КП/накладная: 0</span>
+    <span class="pill" id="cnt-pay">Оплата: 0</span>
+    <span class="pill" id="cnt-delivery">Доставка: 0</span>
+    <span class="pill" id="cnt-install">Установка: 0</span>
+    <label class="chk">
+      <input type="checkbox" id="showArchive"> показать архив
     </label>
-    <menu class="od-actions">
-      <button id="dlgCancel" value="cancel" class="od-btn od-btn--ghost">Отмена</button>
-      <button id="dlgSave"   value="default" class="od-btn od-btn--primary">Сохранить</button>
-    </menu>
-  </form>
-</dialog>
+  </section>
 
-<!-- Диалог редактирования клиента -->
-<dialog id="clientDialog" class="od-dialog">
-  <form method="dialog" class="od-form">
-    <h3>Клиент</h3>
-    <input type="hidden" id="clId">
-    <label>Имя<input id="clName" class="od-input" required></label>
-    <label>Телефон<input id="clPhone" class="od-input" inputmode="tel"></label>
-    <label>Email<input id="clEmail" class="od-input" inputmode="email"></label>
-    <label>Город<input id="clCity" class="od-input"></label>
-    <label>Адрес<input id="clAddress" class="od-input"></label>
-    <label>Источник
-      <select id="clSource" class="od-input">
-        <option>Instagram</option><option>WhatsApp</option><option>2ГИС</option>
-        <option>Рекомендации</option><option>Объявление</option><option>Визит в магазин</option>
-      </select>
-    </label>
-    <label>Заметка<textarea id="clNote" class="od-input" rows="3" placeholder="Что важно по клиенту"></textarea></label>
-    <menu class="od-actions">
-      <button value="cancel" class="od-btn od-btn--ghost">Отмена</button>
-      <button id="clSave" value="default" class="od-btn od-btn--primary">Сохранить</button>
-    </menu>
-  </form>
-</dialog>
+  <!-- Pipeline -->
+  <main id="pipeline" class="tab-body active">
+    <div class="pipeline-grid" id="pipeGrid">
+      <!-- columns render by JS -->
+    </div>
+    <button class="fab" id="addDealFab">＋</button>
+  </main>
 
-<!-- Диалог карточки клиента (просмотр) -->
-<dialog id="clientView" class="od-dialog">
-  <div class="od-form">
-    <h3 id="cvName">Клиент</h3>
-    <p id="cvMeta" class="cv-meta"></p>
-    <menu class="od-actions">
-      <a id="cvWA" target="_blank" class="od-btn od-btn--primary">WhatsApp</a>
-      <a id="cvCall" class="od-btn">Позвонить</a>
-      <button id="cvRepeat" class="od-btn">Повторный закуп</button>
-      <button id="cvEdit" class="od-btn">Изменить</button>
-      <button id="cvDelete" class="od-btn od-btn--ghost">Удалить</button>
-      <button id="cvClose" class="od-btn od-btn--ghost">Закрыть</button>
-    </menu>
-  </div>
-</dialog>
+  <!-- Deals list -->
+  <main id="deals" class="tab-body">
+    <div class="toolbar">
+      <input id="searchDeals" class="search" placeholder="Поиск сделки...">
+    </div>
+    <div id="dealsList" class="list"></div>
+  </main>
 
-<!-- Диалог документов сделки (КП/Накладная) -->
-<dialog id="docsDialog" class="od-dialog">
-  <form method="dialog" class="od-form" id="docsForm">
-    <h3>Документы сделки</h3>
-    <input type="hidden" id="docsDealId">
-    <label>Тип документа
-      <select id="docType" class="od-input">
-        <option value="kp">КП</option>
-        <option value="naklad">Накладная</option>
-      </select>
-    </label>
-    <label>Файл (фото/PDF)
-      <input id="docFile" type="file" class="od-input" accept="image/*,.pdf">
-    </label>
-    <menu class="od-actions">
-      <button id="docUpload" class="od-btn od-btn--primary">Загрузить</button>
-      <button value="cancel" class="od-btn od-btn--ghost">Закрыть</button>
-    </menu>
-    <div id="docsList" class="od-list"></div>
-  </form>
-</dialog>
+  <!-- Clients -->
+  <main id="clients" class="tab-body">
+    <div class="toolbar">
+      <input id="searchClients" class="search" placeholder="Поиск клиента...">
+    </div>
+    <div id="clientsList" class="list"></div>
+  </main>
 
-<script>
-  // Вкладки
-  document.querySelectorAll(".od-tab").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      document.querySelectorAll(".od-tab").forEach(b=>b.classList.remove("od-tab--active"));
-      document.querySelectorAll(".od-view").forEach(v=>v.classList.remove("od-view--active"));
-      btn.classList.add("od-tab--active");
-      document.getElementById("tab-"+btn.dataset.tab).classList.add("od-view--active");
-    }, {passive:true});
-  });
-  // Тема
-  const themeBtn=document.getElementById('themeBtn');
-  themeBtn?.addEventListener('click',()=>{
-    const t=document.documentElement.dataset.theme==='dark'?'light':'dark';
-    document.documentElement.dataset.theme=t; localStorage.setItem('od_theme',t);
-  }, {passive:true});
-  document.documentElement.dataset.theme=localStorage.getItem('od_theme')||'dark';
+  <!-- Reports -->
+  <main id="reports" class="tab-body">
+    <div class="toolbar wrap">
+      <button class="btn chip" data-range="1d">Сегодня</button>
+      <button class="btn chip" data-range="7d">Неделя</button>
+      <button class="btn chip" data-range="30d">Месяц</button>
+      <button class="btn chip" data-range="90d">3 мес</button>
+      <button class="btn chip" data-range="180d">6 мес</button>
+    </div>
+    <section class="cards">
+      <div class="card">
+        <div class="card-title">Сделок</div>
+        <div id="repDeals" class="big">0</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Выручка</div>
+        <div id="repRevenue" class="big">0 ₸</div>
+      </div>
+      <div class="card">
+        <div class="card-title">По этапам</div>
+        <div id="repStages" class="mini"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Топ-клиенты</div>
+        <ol id="repTop" class="mini"></ol>
+      </div>
+    </section>
+  </main>
 
-  // Убираем двойной тап-зуум
-  let lastTouch=0;
-  document.addEventListener('touchend', (e)=>{
-    const now = Date.now();
-    if(now - lastTouch <= 300){ e.preventDefault(); }
-    lastTouch = now;
-  }, {passive:false});
-  document.addEventListener('gesturestart', (e)=>e.preventDefault());
-</script>
-<script type="module" src="./app.js"></script>
+  <!-- Settings -->
+  <main id="settings" class="tab-body">
+    <h3>Настройки</h3>
+    <p>Данные клиента можно редактировать в карточке клиента.</p>
+    <p id="roleInfo"></p>
+  </main>
+
+  <!-- Modals -->
+  <dialog id="dealModal" class="modal">
+    <form method="dialog" id="dealForm">
+      <h3 id="dealModalTitle">Новая сделка</h3>
+      <div class="grid-2">
+        <label>Клиент <input name="client" required></label>
+        <label>Телефон <input name="phone" placeholder="+7…" required></label>
+      </div>
+      <div class="grid-2">
+        <label>Сумма (₸) <input type="number" name="amount" min="0" step="1000"></label>
+        <label>Источник
+          <select name="source">
+            <option>Instagram</option>
+            <option>WhatsApp</option>
+            <option>Звонок</option>
+            <option>2ГИС</option>
+            <option>Рекомендации</option>
+            <option>Визит в магазин</option>
+          </select>
+        </label>
+      </div>
+      <div class="grid-2">
+        <label>Этап
+          <select name="stage">
+            <option value="lead">Лид</option>
+            <option value="consult">Консультация</option>
+            <option value="kp">КП/накладная</option>
+            <option value="pay">Оплата</option>
+            <option value="delivery">Доставка</option>
+            <option value="install">Установка</option>
+          </select>
+        </label>
+        <label>Примечание <input name="note" placeholder="коротко"></label>
+      </div>
+      <menu>
+        <button class="btn ghost" value="cancel">Отмена</button>
+        <button class="btn primary" value="default">Сохранить</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="clientModal" class="modal">
+    <form method="dialog" id="clientForm">
+      <h3>Клиент</h3>
+      <div class="grid-2">
+        <label>Имя <input name="name" required></label>
+        <label>Телефон <input name="phone" required></label>
+      </div>
+      <div class="grid-2">
+        <label>Адрес <input name="address"></label>
+        <label>Источник
+          <select name="source">
+            <option>Instagram</option>
+            <option>WhatsApp</option>
+            <option>Звонок</option>
+            <option>2ГИС</option>
+            <option>Рекомендации</option>
+            <option>Визит в магазин</option>
+          </select>
+        </label>
+      </div>
+      <label>Заметки <textarea name="notes" rows="3"></textarea></label>
+      <menu>
+        <button class="btn danger" id="clientDeleteBtn" type="button">Удалить</button>
+        <span class="spacer"></span>
+        <button class="btn ghost" value="cancel">Отмена</button>
+        <button class="btn primary" value="default">Сохранить</button>
+      </menu>
+      <div class="right">
+        <button class="btn" id="repeatBuyBtn" type="button">Повторная покупка</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(()=>{});
+      });
+    }
+  </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 {
   "name": "OpenDoor CRM",
   "short_name": "OpenDoor",
-  "start_url": "./",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0b1220",
   "theme_color": "#0f172a",
@@ -14,11 +14,6 @@
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "apple-touch-icon.png",
-      "sizes": "180x180",
       "type": "image/png"
     }
   ]
