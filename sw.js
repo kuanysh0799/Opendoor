@@ -1,5 +1,5 @@
 // sw.js — PWA cache, исключаем Google OAuth
-const CACHE = 'od-amo-fix2-v1';
+const CACHE = 'od-amo-fix3-v1';
 const ASSETS = [
   './','./index.html','./styles.css','./app.js','./firebase-config.js',
   './manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'

@@ -1,4 +1,4 @@
-// app.js — удаление лидов/клиентов, отмена добавления, карточка клиента (view)
+// app.js — периоды отчётов, роли для удаления клиентов (только админ), убран "Контакт", документы сделки
 import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -7,13 +7,17 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, enableIndexedDbPersistence, addDoc, collection, serverTimestamp,
-  query, orderBy, onSnapshot, updateDoc, doc, where, getDocs, limit, deleteDoc
+  query, orderBy, onSnapshot, updateDoc, doc, where, getDocs, limit, deleteDoc, getDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getStorage, ref, uploadBytes, getDownloadURL, listAll, deleteObject
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 // ---- Firebase init
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
+const storage = getStorage(app);
 
 setPersistence(auth, browserLocalPersistence).catch(()=>{});
 enableIndexedDbPersistence(db).catch(()=>{});
@@ -42,6 +46,23 @@ function waHref(phone, client){
   return norm ? `https://wa.me/${norm}?text=${text}` : `tel:${phone||''}`;
 }
 
+// ---- Roles
+let isAdmin = false;
+async function ensureAdminBootstrap(uid){
+  // Если админов ещё нет — первый вошедший становится админом
+  const snap = await getDocs(query(collection(db,'admins'), limit(1)));
+  if(snap.empty){
+    await setDoc(doc(db,'admins', uid), {createdAt: serverTimestamp()});
+  }
+}
+async function fetchRole(uid){
+  try{
+    const d = await getDoc(doc(db,'admins', uid));
+    isAdmin = d.exists();
+    document.body.dataset.role = isAdmin ? 'admin' : 'manager';
+  }catch{ isAdmin=false; }
+}
+
 // ---- UI refs
 const loginBtn  = $("#loginBtn");
 const logoutBtn = $("#logoutBtn");
@@ -53,18 +74,8 @@ const dealForm  = $("#dealForm");
 const dlgSave   = $("#dlgSave");
 const dlgCancel = $("#dlgCancel");
 
-// Cancel add deal explicitly
-dlgCancel?.addEventListener('click', (e)=>{
-  e.preventDefault();
-  dealDialog.close();
-});
-dealDialog?.addEventListener('close', ()=>{
-  dealForm?.reset();
-});
-
 const STAGES = [
   {id:"lead",        name:"Лид"},
-  {id:"contact",     name:"Контакт"},
   {id:"consult",     name:"Консультация"},
   {id:"kp",          name:"КП / Накладная"},
   {id:"pay",         name:"Оплата"},
@@ -119,9 +130,11 @@ getRedirectResult(auth).catch(()=>{});
 
 // состояние
 let currentUser=null;
-onAuthStateChanged(auth, (user)=>{
+onAuthStateChanged(auth, async (user)=>{
   currentUser=user;
   if(user){
+    await ensureAdminBootstrap(user.uid);
+    await fetchRole(user.uid);
     loginBtn?.classList.add("hidden");
     userChip?.classList.remove("hidden");
     if(userName) userName.textContent = user.displayName || user.email;
@@ -138,13 +151,14 @@ onAuthStateChanged(auth, (user)=>{
 
 // ---- Сделки realtime + отчёты
 const unsub = { deals: null };
+let _deals = [];
 function startRealtime(){
   stopRealtime();
   const q = query(collection(db,"leads"), orderBy("createdAt","desc"));
   unsub.deals = onSnapshot(q, snap=>{
-    const deals = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    redrawDeals(deals);
-    renderReports(deals);
+    _deals = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    redrawDeals(_deals);
+    renderReports(); // uses selected period
   });
 }
 function stopRealtime(){ if(unsub.deals){unsub.deals();unsub.deals=null;} }
@@ -160,6 +174,7 @@ function renderCard(d){
       <a href="${waHref(phone,d.client)}" target="_blank" rel="noopener">📱 ${phone||''}</a>
       <span class="badge">${d.source||""}</span>
       <span class="badge${d.budget? ' badge--ok':''}">${d.budget? money(d.budget):"—"}</span>
+      <button class="od-edit" data-docs="${d.id}">Документы</button>
     </div>
   `;
   return el;
@@ -175,10 +190,12 @@ function enableDnD(){
     card.addEventListener("dragstart", e=>{
       e.dataTransfer.setData("text/plain", card.dataset.id);
     });
-    // delete button
+    // delete or docs
     card.addEventListener("click", (e)=>{
       const del = e.target.closest('[data-del]');
-      if(del){ deleteLead(del.dataset.del); e.stopPropagation(); }
+      if(del){ deleteLead(del.dataset.del); e.stopPropagation(); return; }
+      const docs = e.target.closest('[data-docs]');
+      if(docs){ openDocs(docs.dataset.docs); e.stopPropagation(); return; }
     });
   });
   $$(".list").forEach(list=>{
@@ -207,7 +224,7 @@ function redrawDeals(deals){
       const cnt= colList.closest(".od-col").querySelector(".count");
       if(cnt) cnt.textContent = (+cnt.textContent+1).toString();
     }
-    // список строкой (с удалением)
+    // список строкой (с документами и удалением)
     const row = document.createElement('div');
     row.className = 'row';
     const extra = [];
@@ -217,20 +234,24 @@ function redrawDeals(deals){
     row.innerHTML = `<div><b>${d.client||'Без имени'}</b> · <span class="badge">${d.stage}</span> · <a href="${waHref(d.phone,d.client)}" target="_blank" rel="noopener">${d.phone||''}</a>
                      ${extra.length?`<small>${extra.join(' · ')}</small>`:''}</div>
                      <div class="row-actions">
+                       <button class="od-edit" data-docs="${d.id}">Документы</button>
                        <button class="od-edit" data-del-lead="${d.id}">Удалить</button>
                      </div>`;
     dealList.appendChild(row);
   });
-  // делегируем удаление в списке
-  dealList.addEventListener('click', (e)=>{
-    const btn = e.target.closest('[data-del-lead]');
-    if(btn){ deleteLead(btn.dataset.delLead); }
-  }, { once: true });
+  // делегируем клики
+  dealList.onclick = (e)=>{
+    const del = e.target.closest('[data-del-lead]'); if(del){ deleteLead(del.dataset.delLead); return; }
+    const docs= e.target.closest('[data-docs]'); if(docs){ openDocs(docs.dataset.docs); return; }
+  };
   enableDnD();
 }
 
 // ---- Новая сделка + upsert клиента
 addDealBtn?.addEventListener("click", ()=>dealDialog.showModal());
+dlgCancel?.addEventListener('click', (e)=>{ e.preventDefault(); dealDialog.close(); });
+dealDialog?.addEventListener('close', ()=> dealForm?.reset() );
+
 async function upsertClient({name, phone, source}){
   const norm = normalizePhoneForWA(phone);
   try{
@@ -272,10 +293,11 @@ dlgSave?.addEventListener("click", async (e)=>{
   }
 });
 
-// ---- Клиенты (список + настройки редактировать + просмотр и удаление)
+// ---- Клиенты (список + настройки + просмотр и удаление только для админа)
 let _clients = [];
 const settingsClientList = $("#settingsClientList");
 const clientList = $("#clientList");
+
 function renderClientsList(targetEl, list, withOpen=false){
   targetEl.innerHTML="";
   list.forEach(c=>{
@@ -288,11 +310,12 @@ function renderClientsList(targetEl, list, withOpen=false){
                      </div>
                      <div class="row-actions">
                        ${withOpen?'<button class="od-edit" data-open="'+c.id+'">Открыть</button>':''}
-                       <button class="od-edit danger" data-del-client="${c.id}">Удалить</button>
+                       ${isAdmin?'<button class="od-edit danger" data-del-client="'+c.id+'">Удалить</button>':''}
                      </div>`;
     targetEl.appendChild(row);
   });
 }
+
 function subscribeClients(){
   const q = query(collection(db,'clients'), orderBy('createdAt','desc'));
   onSnapshot(q, snap=>{
@@ -334,6 +357,7 @@ function openClientView(id){
   cv.meta.textContent = parts.join(' · ');
   cv.wa.href   = waHref(c.phone, c.name);
   cv.call.href = `tel:${c.phone||''}`;
+  cv.del.style.display = isAdmin ? '' : 'none';
   cv.dialog.showModal();
 }
 clientList.addEventListener('click', (e)=>{
@@ -357,18 +381,8 @@ cv.edit.addEventListener('click', (e)=>{
   $("#clientDialog").showModal();
 });
 async function deleteClient(id){
-  // проверим наличие сделок
-  const c = _clients.find(x=>x.id===id);
-  if(!c){ alert('Клиент не найден'); return; }
-  const norm = c.phoneNorm || normalizePhoneForWA(c.phone);
-  let hasLeads=false;
-  try{
-    const q1 = query(collection(db,'leads'), where('clientId','==', id), limit(1));
-    const q2 = query(collection(db,'leads'), where('phone','==', c.phone||''), limit(1));
-    const s1 = await getDocs(q1); const s2 = await getDocs(q2);
-    hasLeads = !s1.empty || !s2.empty;
-  }catch{}
-  const ok = confirm(`Удалить клиента${hasLeads?' (есть сделки!)':''}?`);
+  if(!isAdmin){ alert('Удалять клиентов может только админ'); return; }
+  const ok = confirm(`Удалить клиента?`);
   if(!ok) return;
   try{ await deleteDoc(doc(db,'clients',id)); cv.dialog.close(); }catch(e){ alert('Не удалось удалить: '+(e.message||e)); }
 }
@@ -381,23 +395,107 @@ settingsClientList.addEventListener('click', (e)=>{
   if(del){ deleteClient(del.dataset.delClient); }
 });
 
-// ---- Отчёты
-function isToday(ts){
+// ---- Документы сделки (Storage)
+const docsDialog = $("#docsDialog");
+const docsDealId = $("#docsDealId");
+const docTypeEl  = $("#docType");
+const docFileEl  = $("#docFile");
+const docsList   = $("#docsList");
+$("#docUpload").addEventListener('click', async (e)=>{
+  e.preventDefault();
+  const id = docsDealId.value;
+  const file = docFileEl.files && docFileEl.files[0];
+  if(!id || !file){ alert('Выберите файл'); return; }
+  const ext = file.name.split('.').pop();
+  const type = docTypeEl.value; // kp/naklad
+  const path = `leads/${id}/${type}_${Date.now()}.${ext}`;
+  const r = ref(storage, path);
+  try{
+    await uploadBytes(r, file);
+    const url = await getDownloadURL(r);
+    // сохраним в подколлекцию files
+    await addDoc(collection(db, 'leads', id, 'files'), {
+      type, name: file.name, path, url, createdAt: serverTimestamp(), userId: currentUser?.uid || null
+    });
+    docFileEl.value = '';
+    await loadDocs(id);
+  }catch(err){
+    alert('Не удалось загрузить: ' + (err.message||err));
+  }
+});
+async function loadDocs(id){
+  docsList.innerHTML = '<div class="od-empty">Загрузка...</div>';
+  const storagePrefix = ref(storage, `leads/${id}`);
+  try{
+    const res = await listAll(storagePrefix);
+    if(!res.items.length){
+      docsList.innerHTML = '<div class="od-empty">Пока нет файлов</div>';
+      return;
+    }
+    docsList.innerHTML='';
+    for(const itemRef of res.items){
+      const url = await getDownloadURL(itemRef);
+      const name = itemRef.name;
+      const row = document.createElement('div');
+      row.className='row';
+      const isImg = /\.(png|jpg|jpeg|webp|gif)$/i.test(name);
+      row.innerHTML = `<div>${name}${isImg?`<div><img src="${url}" alt="${name}" style="max-height:120px;border:1px solid var(--ring);border-radius:10px;margin-top:6px"></div>`:''}</div>
+                       <div class="row-actions"><a href="${url}" target="_blank" class="od-edit">Открыть</a>
+                       <button class="od-edit danger" data-del-file="${itemRef.fullPath}">Удалить</button></div>`;
+      docsList.appendChild(row);
+    }
+  }catch(err){
+    docsList.innerHTML = '<div class="od-empty">Ошибка загрузки списка</div>';
+  }
+}
+docsList.addEventListener('click', async (e)=>{
+  const btn = e.target.closest('[data-del-file]');
+  if(!btn) return;
+  const path = btn.dataset.delFile;
+  if(!confirm('Удалить файл?')) return;
+  try{
+    await deleteObject(ref(storage, path));
+    await loadDocs(docsDealId.value);
+  }catch(err){
+    alert('Не удалось удалить файл: ' + (err.message||err));
+  }
+});
+function openDocs(id){
+  docsDealId.value = id;
+  loadDocs(id);
+  docsDialog.showModal();
+}
+
+// ---- Отчёты по периодам
+let currentPeriod = 'today'; // today | number of days
+$$('.od-period').forEach(b=>b.addEventListener('click',()=>{
+  $$('.od-period').forEach(x=>x.classList.remove('od-btn--primary'));
+  b.classList.add('od-btn--primary');
+  currentPeriod = b.dataset.period;
+  renderReports();
+}));
+function inPeriod(ts){
   if(!ts || !ts.toDate) return false;
   const d = ts.toDate();
-  const t = new Date();
-  return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate();
+  const now = new Date();
+  if(currentPeriod==='today'){
+    return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth() && d.getDate()===now.getDate();
+  }
+  const days = parseInt(currentPeriod,10);
+  const from = new Date(now.getTime() - days*24*60*60*1000);
+  return d >= from && d <= now;
 }
-function renderReports(deals){
-  const todayDone = deals.filter(d=> (d.stage==='install') && isToday(d.updatedAt));
-  const cnt = todayDone.length;
-  const sum = todayDone.reduce((a,b)=>a+(Number(b.budget)||0),0);
-  $("#r-today-count").textContent = String(cnt);
-  $("#r-today-sum").textContent   = money(sum);
-  $("#r-today-avg").textContent   = cnt? money(Math.round(sum/cnt)) : '0 ₸';
-
+function renderReports(){
+  const deals = _deals;
+  const done = deals.filter(d=> d.stage==='install' && inPeriod(d.updatedAt));
+  const cnt = done.length;
+  const sum = done.reduce((a,b)=>a+(Number(b.budget)||0),0);
+  $("#r-count").textContent = String(cnt);
+  $("#r-sum").textContent   = money(sum);
+  $("#r-avg").textContent   = cnt? money(Math.round(sum/cnt)) : '0 ₸';
   const bySrc = {};
   deals.forEach(d=>{
+    if(!inPeriod(d.updatedAt)) return;
     const s = d.source||'—';
     bySrc[s] = bySrc[s] || {total:0, won:0};
     bySrc[s].total++;
@@ -409,12 +507,9 @@ function renderReports(deals){
     const conv = v.total? Math.round(v.won/v.total*100) : 0;
     const row = document.createElement('div');
     row.className = 'q-row';
-    row.innerHTML = `
-      <div>${src}</div>
+    row.innerHTML = `<div>${src}</div>
       <div class="q-bg"><div class="q-bar" style="width:${conv}%;"></div></div>
-      <div>${v.total} лид.</div>
-      <div>${conv}%</div>
-    `;
+      <div>${v.total} лид.</div><div>${conv}%</div>`;
     wrap.appendChild(row);
   });
 }

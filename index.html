@@ -59,10 +59,17 @@
 
   <!-- Отчёты -->
   <section id="tab-reports" class="od-view">
+    <div class="od-toolbar od-periods">
+      <button class="od-btn od-period od-btn--primary" data-period="today">Сегодня</button>
+      <button class="od-btn od-period" data-period="7">7 дней</button>
+      <button class="od-btn od-period" data-period="30">Месяц</button>
+      <button class="od-btn od-period" data-period="90">3 мес</button>
+      <button class="od-btn od-period" data-period="180">6 мес</button>
+    </div>
     <div class="od-cards">
-      <div class="od-card"><div class="od-card-title">Сегодня — сделки</div><div id="r-today-count" class="od-kpi">0</div></div>
-      <div class="od-card"><div class="od-card-title">Сегодня — выручка</div><div id="r-today-sum" class="od-kpi">0 ₸</div></div>
-      <div class="od-card"><div class="od-card-title">Сегодня — средний чек</div><div id="r-today-avg" class="od-kpi">0 ₸</div></div>
+      <div class="od-card"><div class="od-card-title">Сделки</div><div id="r-count" class="od-kpi">0</div></div>
+      <div class="od-card"><div class="od-card-title">Выручка</div><div id="r-sum" class="od-kpi">0 ₸</div></div>
+      <div class="od-card"><div class="od-card-title">Средний чек</div><div id="r-avg" class="od-kpi">0 ₸</div></div>
     </div>
     <h3 class="od-h3">Качество источников</h3>
     <div id="r-sources" class="od-quality"></div>
@@ -133,6 +140,28 @@
       <button id="cvClose" class="od-btn od-btn--ghost">Закрыть</button>
     </menu>
   </div>
+</dialog>
+
+<!-- Диалог документов сделки (КП/Накладная) -->
+<dialog id="docsDialog" class="od-dialog">
+  <form method="dialog" class="od-form" id="docsForm">
+    <h3>Документы сделки</h3>
+    <input type="hidden" id="docsDealId">
+    <label>Тип документа
+      <select id="docType" class="od-input">
+        <option value="kp">КП</option>
+        <option value="naklad">Накладная</option>
+      </select>
+    </label>
+    <label>Файл (фото/PDF)
+      <input id="docFile" type="file" class="od-input" accept="image/*,.pdf">
+    </label>
+    <menu class="od-actions">
+      <button id="docUpload" class="od-btn od-btn--primary">Загрузить</button>
+      <button value="cancel" class="od-btn od-btn--ghost">Закрыть</button>
+    </menu>
+    <div id="docsList" class="od-list"></div>
+  </form>
 </dialog>
 
 <script>

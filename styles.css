@@ -35,7 +35,7 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-a
 .od-view{display:none}
 .od-view--active{display:block}
 
-.od-kanban{display:grid;grid-template-columns:repeat(7,minmax(260px,1fr));gap:12px;min-height:40vh}
+.od-kanban{display:grid;grid-template-columns:repeat(6,minmax(260px,1fr));gap:12px;min-height:40vh}
 @media (max-width:1100px){.od-kanban{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:720px){.od-kanban{grid-template-columns:repeat(1,1fr)}}
 
@@ -77,3 +77,4 @@ body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-a
 .od-form{padding:16px;min-width:300px;max-width:560px}
 .od-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-top:12px}
 .cv-meta{color:var(--muted);line-height:1.6}
+.od-periods .od-btn{padding:6px 10px}
