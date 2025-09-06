@@ -4,14 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>OpenDoor CRM</title>
-
-  <!-- iOS: allow A2HS and status bar styling -->
+  <!-- iOS A2HS -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="OpenDoor CRM">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 
-  <!-- PWA -->
   <meta name="theme-color" content="#0F7CFF">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./assets/icon-192.png">
@@ -19,24 +17,90 @@
 </head>
 <body>
   <header class="app-header">
-    <img class="logo" src="./assets/icon-192.png" alt="logo">
-    <h1>OpenDoor CRM</h1>
+    <div class="brand">
+      <img class="logo" src="./assets/icon-192.png" alt="OpenDoor">
+      <div class="t">
+        <h1>OpenDoor CRM</h1>
+        <span>Продажи дверей • PWA</span>
+      </div>
+    </div>
+    <div class="grow"></div>
+    <button id="themeToggle" class="icon">🌙</button>
+    <button id="btnLogin" class="btn small ghost">Войти</button>
+    <button id="btnLogout" class="btn small ghost" style="display:none">Выйти</button>
   </header>
-  <main class="wrap">
-    <p>Готово к установке на iPhone.</p>
-    <ol>
-      <li>Открой эту страницу в <strong>Safari</strong> (не Instagram/Telegram).</li>
-      <li>Нажми <strong>Поделиться</strong> (квадрат со стрелкой).</li>
-      <li>Выбери <strong>На экран «Домой»</strong> → <em>Добавить</em>.</li>
-    </ol>
-    <p class="hint">Если кнопка «Добавить» серая: впиши название ярлыка и обнови страницу (потяни вниз).</p>
-  </main>
 
-  <script>
-    // Register service worker for offline (required by iOS web app experience)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
-    }
-  </script>
+  <nav class="tabs">
+    <button data-screen="pipeline" class="active">Воронка</button>
+    <button data-screen="deals">Сделки</button>
+    <button data-screen="clients">Клиенты</button>
+    <button data-screen="tasks">Задачи</button>
+    <button data-screen="reports">Отчёты</button>
+    <button data-screen="settings">Настройки</button>
+    <button id="tabUsers" data-screen="users" style="display:none">Сотрудники</button>
+  </nav>
+
+  <main id="app"></main>
+
+  <button id="fab" class="fab" title="Новая сделка">＋</button>
+
+  <!-- Bottom Sheet -->
+  <div id="sheet" class="sheet hidden" aria-hidden="true">
+    <div class="sheet-box" role="dialog" aria-modal="true">
+      <div class="sheet-head">
+        <strong id="sheetTitle">Новая сделка</strong>
+        <div class="grow"></div>
+        <button id="sheetClose" class="icon">✕</button>
+      </div>
+
+      <div class="grid">
+        <label class="field">
+          <span>Клиент</span>
+          <input id="fName" class="input" placeholder="ФИО">
+        </label>
+        <label class="field">
+          <span>Телефон</span>
+          <input id="fPhone" class="input" placeholder="+7 7xx xxx xx xx" inputmode="tel">
+        </label>
+        <label class="field">
+          <span>Адрес</span>
+          <input id="fAddress" class="input" placeholder="Город, улица, дом">
+        </label>
+        <label class="field">
+          <span>Источник</span>
+          <select id="fSource" class="input">
+            <option>Instagram</option><option>2ГИС</option>
+            <option>Реклама</option><option>Рекомендация</option>
+            <option>Магазин</option><option>WhatsApp</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Дата доставки</span>
+          <input id="fDate" type="date" class="input">
+        </label>
+        <label class="field">
+          <span>Время</span>
+          <input id="fTime" type="time" class="input">
+        </label>
+      </div>
+
+      <section class="items">
+        <div class="row">
+          <h4>Позиции</h4>
+          <div class="grow"></div>
+          <button id="addItem" class="btn small">+ Позиция</button>
+        </div>
+        <div id="items"></div>
+      </section>
+
+      <div class="totals" id="totals"></div>
+
+      <div class="actions">
+        <button id="saveDeal" class="btn primary">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
 </body>
 </html>

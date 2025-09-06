@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthed() { return request.auth != null; }
+    function userDoc() { return get(/databases/$(database)/documents/users/$(request.auth.uid)); }
+    function hasRole(r) { return isAuthed() && userDoc().data.role == r; }
+    function inRoles(arr) { return isAuthed() && arr.hasAny([userDoc().data.role]); }
+    match /users/{uid} {
+      allow read: if isAuthed();
+      allow create: if isAuthed() && request.auth.uid == uid;
+      allow update: if isAuthed() && ( hasRole("owner") || (request.auth.uid == uid && !("role" in request.resource.data.diff(resource.data).changedKeys())) );
+      allow delete: if hasRole("owner");
+    }
+    match /deals/{id} {
+      allow read: if isAuthed();
+      allow create: if inRoles(["owner","manager"]);
+      allow update: if hasRole("owner") ||
+                      hasRole("manager") ||
+                      (hasRole("warehouse") && request.resource.data.diff(resource.data).changedKeys().hasOnly(["warehouse","stage"])) ||
+                      (hasRole("accountant") && request.resource.data.diff(resource.data).changedKeys().hasOnly(["payment"])) ||
+                      (hasRole("courier") && request.resource.data.diff(resource.data).changedKeys().hasOnly(["delivery"]));
+      allow delete: if hasRole("owner");
+    }
+    match /clients/{id} {
+      allow read: if isAuthed();
+      allow create, update: if inRoles(["owner","manager"]);
+      allow delete: if hasRole("owner");
+    }
+  }
+}
