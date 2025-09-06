@@ -8,7 +8,12 @@
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto}
+[hidden]{display:none!important}
 .hidden{display:none!important}
+
+/* Auth flicker gate */
+html[data-ready="0"] .od-auth{visibility:hidden}
+html[data-ready="1"] .od-auth{visibility:visible}
 
 .od-appbar{
   position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;

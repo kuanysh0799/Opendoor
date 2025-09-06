@@ -1,4 +1,4 @@
-// app.js — периоды отчётов, роли для удаления клиентов (только админ), убран "Контакт", документы сделки
+// app.js — fix4: save client handler, settings edit, boot gate to stop logout/login flicker
 import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -49,7 +49,6 @@ function waHref(phone, client){
 // ---- Roles
 let isAdmin = false;
 async function ensureAdminBootstrap(uid){
-  // Если админов ещё нет — первый вошедший становится админом
   const snap = await getDocs(query(collection(db,'admins'), limit(1)));
   if(snap.empty){
     await setDoc(doc(db,'admins', uid), {createdAt: serverTimestamp()});
@@ -64,6 +63,7 @@ async function fetchRole(uid){
 }
 
 // ---- UI refs
+const authBox = document.querySelector('.od-auth');
 const loginBtn  = $("#loginBtn");
 const logoutBtn = $("#logoutBtn");
 const userChip  = $("#userChip");
@@ -128,10 +128,17 @@ loginBtn?.addEventListener("click", async ()=>{
 logoutBtn?.addEventListener("click", ()=>signOut(auth));
 getRedirectResult(auth).catch(()=>{});
 
-// состояние
+// состояние + boot-gate to avoid flicker
 let currentUser=null;
+let booted=false;
 onAuthStateChanged(auth, async (user)=>{
   currentUser=user;
+  if(!booted){
+    // показать панель только после первого значения состояния
+    document.documentElement.setAttribute('data-ready','1');
+    authBox?.removeAttribute('hidden');
+    booted=true;
+  }
   if(user){
     await ensureAdminBootstrap(user.uid);
     await fetchRole(user.uid);
@@ -239,7 +246,6 @@ function redrawDeals(deals){
                      </div>`;
     dealList.appendChild(row);
   });
-  // делегируем клики
   dealList.onclick = (e)=>{
     const del = e.target.closest('[data-del-lead]'); if(del){ deleteLead(del.dataset.delLead); return; }
     const docs= e.target.closest('[data-docs]'); if(docs){ openDocs(docs.dataset.docs); return; }
@@ -310,7 +316,8 @@ function renderClientsList(targetEl, list, withOpen=false){
                      </div>
                      <div class="row-actions">
                        ${withOpen?'<button class="od-edit" data-open="'+c.id+'">Открыть</button>':''}
-                       ${isAdmin?'<button class="od-edit danger" data-del-client="'+c.id+'">Удалить</button>':''}
+                       <button class="od-edit" data-edit="${c.id}">Изменить</button>
+                       ${document.body.dataset.role==='admin'?'<button class="od-edit danger" data-del-client="'+c.id+'">Удалить</button>':''}
                      </div>`;
     targetEl.appendChild(row);
   });
@@ -357,18 +364,26 @@ function openClientView(id){
   cv.meta.textContent = parts.join(' · ');
   cv.wa.href   = waHref(c.phone, c.name);
   cv.call.href = `tel:${c.phone||''}`;
-  cv.del.style.display = isAdmin ? '' : 'none';
+  cv.del.style.display = document.body.dataset.role==='admin' ? '' : 'none';
   cv.dialog.showModal();
 }
 clientList.addEventListener('click', (e)=>{
   const openBtn = e.target.closest('[data-open]');
+  const editBtn = e.target.closest('[data-edit]');
+  const delBtn  = e.target.closest('[data-del-client]');
   if(openBtn){ openClientView(openBtn.dataset.open); }
+  if(editBtn){ openEditClient(editBtn.dataset.edit); }
+  if(delBtn){ deleteClient(delBtn.dataset.delClient); }
 });
-cv.close.addEventListener('click', ()=> cv.dialog.close());
-cv.edit.addEventListener('click', (e)=>{
-  e.preventDefault();
-  if(!cv.currentId) return;
-  const c = _clients.find(x=>x.id===cv.currentId); if(!c) return;
+settingsClientList.addEventListener('click', (e)=>{
+  const editBtn = e.target.closest('[data-edit]');
+  const delBtn  = e.target.closest('[data-del-client]');
+  if(editBtn){ openEditClient(editBtn.dataset.edit); }
+  if(delBtn){ deleteClient(delBtn.dataset.delClient); }
+});
+
+function openEditClient(id){
+  const c = _clients.find(x=>x.id===id); if(!c) return;
   $("#clId").value = c.id;
   $("#clName").value = c.name||'';
   $("#clPhone").value = c.phone||'';
@@ -377,23 +392,38 @@ cv.edit.addEventListener('click', (e)=>{
   $("#clAddress").value = c.address||'';
   $("#clSource").value = c.source||'Instagram';
   $("#clNote").value   = c.note||'';
-  cv.dialog.close();
   $("#clientDialog").showModal();
+}
+
+const clSaveBtn = $("#clSave");
+clSaveBtn?.addEventListener('click', async (e)=>{
+  e.preventDefault();
+  const id = $("#clId").value;
+  if(!id){ alert('Нет ID клиента'); return; }
+  try{
+    await updateDoc(doc(db,'clients',id), {
+      name: $("#clName").value.trim(),
+      phone: $("#clPhone").value.trim(),
+      phoneNorm: normalizePhoneForWA($("#clPhone").value),
+      email: $("#clEmail").value.trim(),
+      city: $("#clCity").value.trim(),
+      address: $("#clAddress").value.trim(),
+      source: $("#clSource").value,
+      note: $("#clNote").value.trim(),
+      updatedAt: serverTimestamp()
+    });
+    $("#clientDialog").close();
+  }catch(err){
+    alert('Не удалось сохранить: '+(err.message||err));
+  }
 });
+
 async function deleteClient(id){
-  if(!isAdmin){ alert('Удалять клиентов может только админ'); return; }
+  if(document.body.dataset.role!=='admin'){ alert('Удалять клиентов может только админ'); return; }
   const ok = confirm(`Удалить клиента?`);
   if(!ok) return;
-  try{ await deleteDoc(doc(db,'clients',id)); cv.dialog.close(); }catch(e){ alert('Не удалось удалить: '+(e.message||e)); }
+  try{ await deleteDoc(doc(db,'clients',id)); $("#clientDialog")?.close(); }catch(e){ alert('Не удалось удалить: '+(e.message||e)); }
 }
-clientList.addEventListener('click', (e)=>{
-  const del = e.target.closest('[data-del-client]');
-  if(del){ deleteClient(del.dataset.delClient); }
-});
-settingsClientList.addEventListener('click', (e)=>{
-  const del = e.target.closest('[data-del-client]');
-  if(del){ deleteClient(del.dataset.delClient); }
-});
 
 // ---- Документы сделки (Storage)
 const docsDialog = $("#docsDialog");
@@ -412,10 +442,8 @@ $("#docUpload").addEventListener('click', async (e)=>{
   const r = ref(storage, path);
   try{
     await uploadBytes(r, file);
-    const url = await getDownloadURL(r);
-    // сохраним в подколлекцию files
     await addDoc(collection(db, 'leads', id, 'files'), {
-      type, name: file.name, path, url, createdAt: serverTimestamp(), userId: currentUser?.uid || null
+      type, name: file.name, path, createdAt: serverTimestamp(), userId: currentUser?.uid || null
     });
     docFileEl.value = '';
     await loadDocs(id);
