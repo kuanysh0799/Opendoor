@@ -1,21 +1,32 @@
+// ==== Firebase (Auth + Firestore) ====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { getFirestore /*, collection, addDoc, getDocs, query, where */ } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
-
-// Кнопка входа
+const fbApp = initializeApp(firebaseConfig);
+const auth  = getAuth(fbApp);
+const db    = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
-document.getElementById("loginBtn")?.addEventListener("click", async () => {
-  try {
-    const { user } = await signInWithPopup(auth, provider);
-    console.log("Вошёл:", user.email);
-    // Тут можешь показать UI после входа
-  } catch (e) {
-    console.error("Ошибка входа:", e);
+
+// UI: логин/логаут
+const loginBtn  = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const userName  = document.getElementById('userName');
+
+if (loginBtn)  loginBtn.onclick  = () => signInWithPopup(auth, provider).catch(e => toast('Ошибка входа'));
+if (logoutBtn) logoutBtn.onclick = () => signOut(auth).catch(()=>{});
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    loginBtn && (loginBtn.style.display = 'none');
+    logoutBtn && (logoutBtn.style.display = 'inline-block');
+    userName && (userName.textContent = user.displayName || user.email);
+    // тут позже можно подгружать реальные сделки/клиентов из Firestore
+  } else {
+    loginBtn && (loginBtn.style.display = 'inline-block');
+    logoutBtn && (logoutBtn.style.display = 'none');
+    userName && (userName.textContent = '');
   }
 });
 
