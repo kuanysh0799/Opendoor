@@ -66,12 +66,18 @@ async function ensureUserProfile(user) {
   console.log('Профиль создан. Роль:', role);
 }
 
-// Auth state
+// Auth state + show role
 onAuthStateChanged(auth, async (u) => {
   $("#authBtn").textContent = u ? (u.displayName || u.email || "Выйти") : "Войти";
   $("#fab").style.display = u ? "block" : "none";
-  if (u) { await ensureUserProfile(u); loadDeals(); renderStages(); }
-  else { $("#dealsList").innerHTML=''; $("#stages").innerHTML=''; }
+  if (u) {
+    await ensureUserProfile(u);
+    const snap = await getDoc(doc(db, "users", u.uid));
+    if (snap.exists()) { $("#userRole").textContent = snap.data().role || "—"; }
+    loadDeals(); renderStages();
+  } else {
+    $("#dealsList").innerHTML=''; $("#stages").innerHTML=''; $("#userRole").textContent = "—";
+  }
 });
 
 // Pipeline

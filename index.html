@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="icon" href="assets/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
   <header class="appbar">
@@ -72,6 +72,10 @@
           <span>Аккаунт</span>
           <button id="signOutBtn" class="pill sm danger">Выйти</button>
         </label>
+        <label class="row">
+          <span>Ваша роль</span>
+          <span id="userRole" class="pill sm ghost">—</span>
+        </label>
       </div>
     </section>
   </main>
@@ -91,8 +95,8 @@
     </form>
   </dialog>
 
-  <script type="module" src="firebase-config.js?v=12"></script>
-  <script type="module" src="app.js?v=12"></script>
+  <script type="module" src="firebase-config.js?v=14"></script>
+  <script type="module" src="app.js?v=14"></script>
   <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}</script>
 </body>
 </html>

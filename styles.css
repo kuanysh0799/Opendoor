@@ -30,7 +30,7 @@ box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .icon{width:40px;height:40px;border-radius:12px}
 .ghost{background:#0e1629;border:1px solid var(--ring);color:#e7eeff}
 .pill-tabs{display:flex;gap:14px;padding:14px 16px;flex-wrap:wrap}
-.input{width:100%;padding:12px;border:1px solid var(--ring);border-radius:12px;background:#0f1931;color:var(--text)}
+.input{width:100%;padding:12px;border:1px solid var(--ring);border-radius:12px;background:#0f1931;color:#eaf1ff}
 .workspace{height:calc(100dvh - 150px);padding:12px}
 .pane{display:none;height:100%;border-radius:16px;background:rgba(255,255,255,.02);border:1px solid var(--border);padding:12px;overflow:auto}
 .pane.active{display:block}
@@ -42,10 +42,10 @@ box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .card{background:#0f1630;border:1px solid var(--ring);border-radius:14px;padding:10px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
 .card .badge{display:inline-block;padding:4px 8px;border-radius:10px;background:#132046;border:1px solid var(--ring);font-size:12px;color:#cfe0ff}
 .card h5{margin:6px 0 8px;font-size:16px}
-.meta{font-size:12px;color:var(--muted)}
-.empty{padding:20px;color:var(--muted);text-align:center}
+.meta{font-size:12px;color:#a4b3cc}
+.empty{padding:20px;color:#a4b3cc;text-align:center}
 .dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(2px)}
-.sheet{min-width:280px;max-width:420px;background:#0e162b;border:1px solid var(--ring);border-radius:16px;padding:16px;color:var(--text)}
+.sheet{min-width:280px;max-width:420px;background:#0e162b;border:1px solid var(--ring);border-radius:16px;padding:16px;color:#eaf1ff}
 .sheet h3{margin:0 0 12px}
 .sheet label{display:block;margin:10px 0}
 .sheet menu{display:flex;gap:10px;justify-content:flex-end;margin:10px 0 0}

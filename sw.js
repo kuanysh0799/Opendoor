@@ -1,8 +1,8 @@
-const CACHE='od-v12';
+const CACHE='od-v14';
 self.addEventListener('install',e=>{
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll([
-    './','./index.html','./styles.css?v=12','./app.js?v=12','./firebase-config.js?v=12','./manifest.webmanifest'
+    './','./index.html','./styles.css?v=14','./app.js?v=14','./firebase-config.js?v=14','./manifest.webmanifest'
   ])));
 });
 self.addEventListener('activate',e=>{

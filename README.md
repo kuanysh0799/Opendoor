@@ -1,5 +1,5 @@
-# OpenDoor CRM — Roles (owner/manager)
-1) Залейте файлы в GitHub Pages (репозиторий Opendoor).
-2) В Firebase Firestore → Rules вставьте содержимое `firestore.rules` и Publish.
-3) Откройте сайт с обходом кэша: `...?v=12`.
-4) Первый вошедший пользователь автоматически станет `owner`, остальные — `manager`.
+# OpenDoor CRM — v14 (roles visible)
+1) Залейте всё в GitHub Pages (репозиторий Opendoor).
+2) Firestore → Rules → вставьте `firestore.rules` → Publish.
+3) Откройте: `https://kuanysh0799.github.io/Opendoor/?v=14`.
+4) Первый вошедший = owner, остальные = manager.
